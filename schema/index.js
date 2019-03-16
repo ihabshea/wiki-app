@@ -86,14 +86,14 @@ buildSchema(`
     name: String!
     registrationDate: String!
   }
-  input ArticleInput{
-    createdOn: String!
-  }
+
   input TitleInput{
     title: String!
+    articleId: ID!
     language: String!
   }
   input DescriptionInput{
+    articleId : ID!
     text: String!
     language: String!
   }
@@ -105,25 +105,28 @@ buildSchema(`
   }
   type RootMutation{
     registerUser(userInput: UserInput): person!
-    createArticle(articleInput: ArticleInput): article!
+    createArticle: article!
     createDescription(descriptionInput: DescriptionInput): description!
     createTitle(titleInpt: TitleInput): title!
     createSection(sectionInput: SectionInput): section!
+    createLanguage(name: String, shorthand: String): supportedLanguages!
   }
   type RootQuery{
-    articles: [article!]!
-    article(id: ID!): article!
+    articles(language: String!): [article!]!
+    article(id: ID!, language: String!): article!
     users: [person!]
     sections(articleID: ID!,language: String!): [section!]!
     section(sectionID: ID!,language: String!): section!
     fields(articleID: ID!,language: String!): [field!]!
     field(articleID: ID!,language: String!): field!
-    title(articleID: ID!, language: String!): title!
-    description(articleID: ID!, language: String!): description!
+    title(articleID: ID!, language: String!): title
+    description(articleID: ID!, language: String!): description
     language(shorthand: String!): supportedLanguages!
     languages: [supportedLanguages!]!
+    alanguages(aid: ID!):  [supportedLanguages!]
     modifications(articleID: ID!,language: String!): [modification!]!
     login(username: String!, password: String!): AuthData!
+    topArticles(limit: Int!): [article!]!
   }
   schema{
     query: RootQuery,

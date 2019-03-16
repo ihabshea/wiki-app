@@ -45,7 +45,11 @@ const articleSchema = new Schema({
       type: Schema.Types.ObjectId,
       ref: 'Modification'
     }
-  ]
+  ],
+  views: {
+    type: Number,
+    required: true
+  }
 });
 module.exports = mongoose.model('Article', articleSchema);
 /*
