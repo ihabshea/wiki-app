@@ -3,9 +3,11 @@ import React, { useReducer, useContext, useState, useEffect } from 'react';
 import {BrowserRouter as Router, Link, Route} from 'react-router-dom';
 import { PropsRoute, PublicRoute, PrivateRoute } from 'react-router-with-props';
 import AuthContext from './context/auth';
+import LangContext from './language/languageContext';
 import Header from './pages/Header';
 import Article from './pages/Article';
 import MainPage from './pages/Mainpage'
+import strings from './language/localization';
 import useEffectAsync from './helpers/useEffectAsync';
 import {
   Collapse,
@@ -82,6 +84,7 @@ const appReducer = (state, action)  => {
 
 const App = () => {
 const [articles, dispatch] = useReducer(appReducer,  []);
+const [globalLanguage, setGLanguage] = useState("en");
 const [loginState, updateToken] = useState({
   token: null,
   userId: null,
@@ -95,6 +98,9 @@ useEffect(()=> {
 
 
 }, []);
+useEffectAsync(async() => {
+  await strings.setLanguage(localStorage.getItem("language"));
+});
 // useEffect(()=> {
 //   localStorage.setItem('login', JSON.stringify(loginState));
 // },[loginState])
@@ -113,15 +119,20 @@ const loginFunction = async (token, userId, tokenExpiration) => {
 const logoutFunction = () => {
 
 }
+const changeLang = async (language) =>{
+  await localStorage.setItem('language', language);
+  await setGLanguage(language);
+}
   return(
     <Router>
       <Context.Provider value={dispatch}>
-        <AuthContext.Provider value={{token: loginState.token, userId: loginState.userId, login: loginFunction, logout: logoutFunction}}>
-        <Header />
-        <PropsRoute exact path="/" component={MainPage} loginState={loginState} articles={articles} />
-        <PropsRoute path="/article/:id" component={Article} />
-        </AuthContext.Provider>
-
+        <LangContext.Provider value={{language: globalLanguage, changeLanguage: changeLang}}>
+          <AuthContext.Provider value={{token: loginState.token, userId: loginState.userId, login: loginFunction, logout: logoutFunction}}>
+          <Header language={globalLanguage} />
+          <PropsRoute exact path="/" component={MainPage} loginState={loginState} articles={articles} />
+          <PropsRoute path="/article/:id" component={Article} />
+          </AuthContext.Provider>
+        </LangContext.Provider>
       </Context.Provider>
     </Router>
 

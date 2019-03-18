@@ -1,5 +1,7 @@
 import React, { useReducer, useContext, useState, useEffect } from 'react';
 import AuthContext from '../context/auth';
+import LangContext from '../language/languageContext';
+import strings from '../language/localization';
 import {
   Collapse,
   Navbar,
@@ -19,6 +21,7 @@ const TopArticles = ({topArticles}) => {
 }
 const MainPage = ({token, articles}) => {
   const authD =  useContext(AuthContext);
+  const lContext = useContext(LangContext);
   const createArticle = async(event) => {
     const loginRequest = {
       query: `
@@ -59,27 +62,41 @@ const MainPage = ({token, articles}) => {
   }
   return(
     <>
+    
+        <LangContext.Consumer>
+        {lcontext => {
+            return (
     <AuthContext.Consumer>
-    {context => {
-      return (
+  
+    
+        {context => {
+
+          return (
         <div>
           <Jumbotron>
-            <h1 className="display-3">Hello, world!</h1>
-            <p className="lead">An encyclopedia management system built to help fullstack developers.</p>
+            <h1 className="display-3">{strings.hello}</h1>
+            <p className="lead">{strings.enc_msg}</p>
             <hr className="my-2" />
             <p>Contribute to the development, try the software out or explore the API.</p>
             <p className="lead">
             {context.token &&
-              <Button onClick={createArticle} color="primary">Create Article</Button>
+              <Button onClick={createArticle} color="primary">{strings.newArticle}</Button>
             }
 
             </p>
           </Jumbotron>
 
         </div>
-      )
-    }}
+          )
+           }}
       </AuthContext.Consumer>
+           
+      )
+ 
+    }}
+      </LangContext.Consumer>
+
+     
     </>
   )
 }

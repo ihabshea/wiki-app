@@ -1,0 +1,61 @@
+import LocalizedStrings from 'react-localization';
+import React, { useReducer, useContext, useState, useEffect } from 'react';
+let strings = new LocalizedStrings({
+ en:{
+   hello:"Hello, World!",
+   enc_msg:"An encyclopedia management system built to help fullstack developers.",
+   newArticle:"New Article",
+   untitledarticle:"Untitled Article",
+   article: "article",
+   section: "section",
+   home: "Home",
+   languages: "Languages",
+   selectLanguage: "Select a language. Cancelling sets the language to English by default.",
+   itallows: "WikiMVC allows articles to be written in multiple languages; pick the language you want to write your articles in. P.S: you can change the settings later. ",
+   cancel : "cancel",
+   setTitle: "Set a title for the article",
+   setDescription: "Set a description for the article",
+   done: "done",
+   addfield:"Add a field",
+   name:  "name",
+   value: "value",
+   editmode: "Edit Mode"
+ },
+ ar: {
+   hello:"مرحباً بالعالم",
+   enc_msg:"نظام إدارة موسوعات معرفة مبني لمساعدة المطورين",
+   newArticle:"مقال جديد",
+   home: "الرئيسية",
+   untitledarticle:"مقال بدون عنوان",
+   article: "مقال",
+   section: "قسم",
+   languages: "لغات",
+   selectLanguage:" إختر لغة، الإلغاء يحدد الإنجليزية كلغة أساسية",
+   itallows: "نسمح لك بكتابة المقالات بلغات متعددة، إختر اللغة التي تود أن تكتب فيها مقالك الآن. يمكك ا لتعديل في المستقل.",
+   cancel : "إلغاء",
+   setTitle: "حدد عنواناً للمقال",
+   addfield:"أضف حقلاً",
+   name:  "الاسم",
+   value: "القيمة",
+   setDescription: "حدد وصفاً للمقال",
+   done: "تم",
+   editmode:"وضع التعديل"
+ },
+ es:{
+  hello:"¡Hola Mundo!",
+  enc_msg:"Un sistema de gestión de la enciclopedia creado para ayudar a los desarrolladores de Fullstack.",
+  newArticle:"Articulo nuevo",
+  untitledarticle:"Artículo sin título",
+  article: "artículo",
+  section: "sección",
+  home: "Casa",
+  languages: "Idiomas",
+  selectLanguage: "Selecciona un idioma. La cancelación establece el idioma en inglés de forma predeterminada.",
+  itallows: "WikiMVC allows articles to be written in multiple languages; pick the language you want to write your articles in. P.S: you can change the settings later. ",
+  cancel : "cancelar",
+  setTitle: "Establecer un título para el artículo.",
+  setDescription: "Establecer una descripción para el artículo.",
+  done: "hecho"
+},
+});
+export default strings;

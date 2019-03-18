@@ -1,6 +1,9 @@
 
 import React, { useReducer, useContext, useState, useEffect } from 'react';
 import AuthContext from '../context/auth';
+import useEffectAsync from '../helpers/useEffectAsync';
+import LangContext from '../language/languageContext';
+import strings from '../language/localization';
 import {
   Collapse,
   Navbar,
@@ -15,9 +18,10 @@ import {
   DropdownItem,
  Button, Modal, ModalHeader, ModalBody, ModalFooter,
 Col, Row, Form, Container, FormGroup, Label, Input, FormText, ListGroup, ListGroupItem, Jumbotron } from 'reactstrap';
-const Header  = () => {
+const Header  = ({language}) => {
     const [modal, setModal] = useState(false);
     const context = useContext(AuthContext);
+    const lContext = useContext(LangContext);
     const [loginForm, setLoginForm] = useState([{
       username: '',
       password : ''
@@ -60,6 +64,9 @@ const Header  = () => {
         throw(err);
       });
     }
+    useEffectAsync(async() => {
+      await strings.setLanguage(localStorage.getItem("language"));
+    });
     const toggle = () => { setModal(!modal); }
     const changeInput = (e) => {
       const name = e.target.name;
@@ -70,10 +77,14 @@ const Header  = () => {
       <AuthContext.Consumer>
       {context => {
         return (
+          <LangContext.Consumer>
+          {lContext => {
+  
+            return (
           <div>
           <header>
             <div id="header-links">
-              <a className="current" id="header-link"><img src="/img/home.png" /><span className="text">Home</span></a>
+              <a className="current" id="header-link"><img src="/img/home.png" /><span className="text">{strings.home}</span></a>
             </div>
             <div id="logo">
             WikiMVC
@@ -106,6 +117,10 @@ const Header  = () => {
             <div style={{"clear":"right"}}></div>
           </header>
          </div>
+            )
+          }}
+          </LangContext.Consumer>
+
         )
       }}
 
