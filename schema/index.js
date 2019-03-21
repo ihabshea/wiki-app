@@ -39,8 +39,8 @@ buildSchema(`
     _id: ID!
     author: person!
     language: supportedLanguages!
-    title: String!
-    content: String!
+    title: String
+    content: String
     createdOn: String!
     lastModification: String!
     modifiers: [person!]
@@ -100,8 +100,6 @@ buildSchema(`
     language: String!
   }
   input SectionInput{
-    title: String!
-    text: String!
     language: String!
     articleId: ID!
   }
@@ -118,8 +116,11 @@ buildSchema(`
     updateDescription(descriptionInput: DescriptionInput): description!
     createTitle(titleInpt: TitleInput): title!
     createField(fieldInput: FieldInput): field!
-    createSection(sectionInput: SectionInput): section!
+    createSection(articleID: ID!, language: String!): section!
+    updateSectionTitle(sectionID: ID!, title: String!): section!
+    updateSectionContent(sectionID: ID!, content: String!): section!
     updateField(fieldID: ID!, newvalue: String!): field!
+    deleteSection(sectionID: ID!): modification!
     deleteField(fieldID: ID!, reason: String!): modification!
     createLanguage(name: String, shorthand: String): supportedLanguages!
   }

@@ -15,6 +15,8 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import Input from '@material-ui/core/Input';
 import IconButton from '@material-ui/core/IconButton';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
+import Fab from '@material-ui/core/Fab';
+import AddIcon from '@material-ui/icons/Add';
 import InputBase from '@material-ui/core/InputBase';
 import InputLabel from '@material-ui/core/InputLabel';
 import TextField from '@material-ui/core/TextField';
@@ -63,6 +65,7 @@ const Article = ({match}) => {
   const [addField, setAddField] =  useState(false);
   const [editMode, setEM] = useState(false);
   const [modal, setModal] = useState(true);
+  const [sectionedit, setSE] = useState(null);
   const [EFV, setEFV] = useState('');
   const [loaded, setLoaded] = useState(false);
   const [title, setTitle] = useState({text: null});
@@ -71,7 +74,12 @@ const Article = ({match}) => {
   const [description, setDescription] = useState({text: null});
   const [editDescrition, setED] = useState(false);
   const [deletemodal, setDeleteModal] = useState(false);
+  const [sections, retrieveSections] = useState([]);
   const [currentDescription, setCD] = useState('');
+  const [sectionTitle,  setST] =  useState('');
+  const [sectionDeleteDialog, setSDD] = useState(false); 
+  const [sectionContent, setSC] = useState('');
+  const [sectionCID, setSCID] = useState(null);
   const [languages, setLanguages] = useState([{shorthand: "en",  name:"English"}]);
   const [alanguages, setALanguages] = useState([{shorthand: "en",  name:"English"}]);
   const [editableField, setEF] = useState(null);
@@ -286,6 +294,7 @@ const Article = ({match}) => {
      await  fetchLanguages();
      await fetchALanguages(match.params.id);
      await fetchTitle();
+     await fetchSections();
      await fetchFields();
      await fetchDescription();
     setLoaded(true);
@@ -295,6 +304,7 @@ const Article = ({match}) => {
      await lContext.changeLanguage(localStorage.getItem("language"));
      await fetchTitle();
      await fetchFields();
+     await fetchSections();
      await fetchDescription();
     setLoaded(true);
 
@@ -431,10 +441,49 @@ const Article = ({match}) => {
      throw(err);
      })
      await fetchTitle();
+     
      await fetchALanguages(match.params.id);
      setET(false);
      setLoaded(true);
    }
+   const createSection = async (e) => {
+    e.preventDefault();
+    setLoaded(false);
+    const requestBody = {
+
+    query : `
+    mutation {
+      createSection(articleID:"${match.params.id}", language: "${lpreferredLanguage}"){
+        _id
+      }
+    }`
+    };
+    await fetch('http://localhost:9000/graphql',
+
+    {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer '+ authD.token
+      }
+    }
+    )
+    .then( res => {
+      if(res.status !== 200 && res.status !== 201){
+        throw new Error('failed');
+      }
+    return res.json();
+    }).then(resData => {
+      console.log("");
+    }).catch(err => {
+    throw(err);
+    })
+    await fetchTitle();
+    await fetchSections();
+    setET(false);
+    setLoaded(true);
+  }
    const changeSValue = async (e) => {
      e.preventDefault();
      setModal(true);
@@ -576,6 +625,175 @@ const Article = ({match}) => {
     setET(false);
     setLoaded(true);
   }
+  const fetchSections = async() => {
+    setLoaded(false);
+    const requestBody = {
+
+    query : `
+    query {
+      sections(articleID: "${match.params.id}", language: "${lpreferredLanguage}"){
+        _id
+        title
+        content
+      }
+    }`
+    };
+    await fetch('http://localhost:9000/graphql',
+
+    {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer '+ authD.token
+      }
+    }
+    )
+    .then( res => {
+      if(res.status !== 200 && res.status !== 201){
+        throw new Error('failed');
+      }
+    return res.json();
+    }).then(resData => {
+      console.log(resData);
+      retrieveSections(resData.data.sections);
+    }).catch(err => {
+    throw(err);
+    })
+
+    setLoaded(true);
+  }
+  const updateSectionTitle =  async(id) => {
+    setLoaded(false);
+    const requestBody = {
+
+    query : `
+    mutation {
+      updateSectionTitle(sectionID: "${id}", title: "${sectionTitle}"){
+        title
+      }
+    }`
+    };
+    await fetch('http://localhost:9000/graphql',
+
+    {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer '+ authD.token
+      }
+    }
+    )
+    .then( res => {
+      if(res.status !== 200 && res.status !== 201){
+        throw new Error('failed');
+      }
+    return res.json();
+    }).then(resData => {
+    console.log(resData.data.title);
+    if(resData.data.title){
+      setTitle(resData.data.title);
+    }else{
+      setTitle({text: null});
+    }
+    }).catch(err => {
+    throw(err);
+    })
+    await fetchTitle();
+    await fetchSections();
+
+    await fetchFields();
+    await fetchALanguages(match.params.id);
+    setET(false);
+    setLoaded(true);
+  }
+  const deleteSection = async(id) => {
+    setLoaded(false);
+    const requestBody = {
+
+    query : `
+    mutation {
+      deleteSection(sectionID: "${id}"){
+        section{
+          _id
+        }
+      }
+    }`
+    };
+    await fetch('http://localhost:9000/graphql',
+
+    {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer '+ authD.token
+      }
+    }
+    )
+    .then( res => {
+      if(res.status !== 200 && res.status !== 201){
+        throw new Error('failed');
+      }
+    return res.json();
+    }).then(resData => {
+      
+    }).catch(err => {
+    throw(err);
+    })
+    await fetchTitle();
+    await fetchSections();
+    await fetchFields();
+    await fetchALanguages(match.params.id);
+    setET(false);
+    setLoaded(true);
+  };
+  const updateSectionContent =  async(id) => {
+    setLoaded(false);
+    const requestBody = {
+
+    query : `
+    mutation {
+      updateSectionContent(sectionID: "${id}", content: """${sectionContent}"""){
+        title
+      }
+    }`
+    };
+    await fetch('http://localhost:9000/graphql',
+
+    {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer '+ authD.token
+      }
+    }
+    )
+    .then( res => {
+      if(res.status !== 200 && res.status !== 201){
+        throw new Error('failed');
+      }
+    return res.json();
+    }).then(resData => {
+    console.log(resData.data.title);
+    if(resData.data.title){
+      setTitle(resData.data.title);
+    }else{
+      setTitle({text: null});
+    }
+    }).catch(err => {
+    throw(err);
+    })
+    await fetchTitle();
+    await fetchSections();
+
+    await fetchFields();
+    await fetchALanguages(match.params.id);
+    setET(false);
+    setLoaded(true);
+  }
   const deleteField = async (id) => {
     setLoaded(false);
     const requestBody = {
@@ -614,6 +832,8 @@ const Article = ({match}) => {
     throw(err);
     })
     await fetchTitle();
+    await fetchSections();
+
     await fetchFields();
     await fetchALanguages(match.params.id);
     setET(false);
@@ -737,7 +957,7 @@ const Article = ({match}) => {
       </FormControl>
                 }
       <ListItemSecondaryAction>
-                <IconButton onClick={() => { updateField(field._id) }}  aria-label="Delete">
+        <IconButton onClick={() => { updateField(field._id) }}  aria-label="Delete">
           <i class="material-icons">
                 save
           </i>
@@ -838,10 +1058,17 @@ const Article = ({match}) => {
             Save
           </Button>
         </ExpansionPanelActions>
-            </form>
+            </form> 
           }
           {!addField &&
-            <Button onClick={() => setAddField(true)} style={{marginTop:5}} outline color="secondary">{strings.addfield}</Button>
+                 <Button
+                 outline
+     variant="extended"
+     size="small"
+     color="primary"
+     aria-label="Add"
+     className={classes.margin}
+   onClick={() => setAddField(true)} style={{marginTop:5}} outline color="secondary">{strings.addfield}</Button>
           }
           </>
           }
@@ -942,7 +1169,15 @@ const Article = ({match}) => {
 
         })}
          {editMode && 
-          <Button onClick={() => setAddField(true)} style={{marginTop:5}} outline color="secondary">Add a new language</Button>
+          <Button
+          outline
+variant="extended"
+size="small"
+color="primary"
+aria-label="Add"
+className={classes.margin}
+ onClick={() => setAddField(true)} style={{marginTop:5}}
+  outline color="secondary">Add a new language</Button>
 
          }
         </ExpansionPanelDetails>
@@ -1006,6 +1241,8 @@ const Article = ({match}) => {
             {editMode && 
               <Button onClick={() => setEM(false)} style={{float:"right"}} outline color="primary">{strings.done}</Button>
             }
+              <Button style={{float:"right"}} outline color="primary">Edit History</Button>
+
             {!title.text &&
               <>
               {!editTitle &&
@@ -1033,7 +1270,7 @@ const Article = ({match}) => {
             </div>
             <div id="jb-finfo">
               <div style={{"clear":"right"}}></div>
-              <div className="job-description">
+              <div>
               {!description.text &&
                 <>
                 {!editDescrition &&
@@ -1053,6 +1290,143 @@ const Article = ({match}) => {
               }
               {description.text &&
                 <p>{description.text}</p>
+              }
+              {/* <h4 style={{marginBottom:0}}>Test</h4>
+              <Divider style={{width:"100%", marginLeft:0, marginBottom:5}} variant="middle" />
+              <p>What up?</p> */}
+              {sections.map(section => {
+                let sectionid = section._id;
+                return(
+                <>
+                  <h4 style={{marginBottom:0}}>
+                  {section.title? 
+                  <>
+                  {section.title}
+                  
+                  {editMode &&
+                    <>
+                          <IconButton onClick={() => setSDD(!sectionDeleteDialog)}  aria-label="Delete">
+          <i class="material-icons">
+                delete
+          </i>
+        </IconButton>
+                          <Dialog
+        open={sectionDeleteDialog}
+        onClose={() => setSDD(!sectionDeleteDialog)}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{"Delete sectoin"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Are you sure?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSDD(!sectionDeleteDialog)} color="primary">
+            No
+          </Button>
+          <Button onClick={() => deleteSection(section._id)} color="primary" autoFocus>
+            Yes
+          </Button>
+        </DialogActions>
+      </Dialog>
+                    </>
+                  }
+                  </>: 
+                
+                  <>
+                  {sectionid != sectionedit ?
+                    <span onClick={() => setSE(sectionid)} style={{cursor:"pointer"}}>
+                    Untitled Section
+                    </span>
+                  :
+                  <>
+                    <FormControl className={classes.margin}>
+        <InputLabel
+          htmlFor="custom-css-standard-input"
+          classes={{
+            root: classes.cssLabel,
+            focused: classes.cssFocused,
+          }}
+        >
+          Section  Title
+        </InputLabel>
+        
+        <Input
+          id="custom-css-standard-input"
+          value={sectionTitle}  
+          onChange={(e) => setST(e.target.value)}
+          classes={{
+            underline: classes.cssUnderline,
+          }}
+        />
+        <IconButton onClick={() => { updateSectionTitle(section._id) }}  aria-label="update">
+          <i class="material-icons">
+                save
+          </i>
+        </IconButton>
+      </FormControl>
+                  </>
+                  }
+                  
+                  </>
+                  
+                  }
+                  </h4>
+              <Divider style={{width:"100%", marginLeft:0, marginBottom:5}} variant="middle" />
+              <p>{section.content? <>{section.content}</>:
+              sectionid != sectionCID ?
+              <>
+              
+              <span onClick={() => setSCID(section._id)} style={{cursor:"pointer"}}>
+                Write in this section.
+              </span>
+              </>
+              :
+              <>
+                      <TextField
+                        style={{width:"100%"}}
+                        id="filled-multiline-flexible"
+                        label="Section content"
+                        multiline
+                        rowsMax="4"
+                        value={sectionContent}
+                        onChange={(e) => setSC(e.target.value)}
+                        className={classes.textField}
+                        margin="normal"
+                        helperText="hello"
+                        variant="filled"
+                      />
+                         <IconButton onClick={() => { updateSectionContent(section._id) }}  aria-label="update">
+          <i class="material-icons">
+                save
+          </i>
+        </IconButton>
+              </> 
+            }</p>
+                </>
+                )
+              })}
+
+
+
+              {editMode && 
+                  <>
+                      <Button
+                      outline
+          variant="extended"
+          size="small"
+          color="primary"
+          aria-label="Add"
+          className={classes.margin}
+          onClick={createSection}
+        >
+
+          <AddIcon className={classes.extendedIcon} />
+          New section
+        </Button>
+                  </>
               }
               </div>
               </div>

@@ -25,6 +25,10 @@ const modfiicationSchema = new Schema({
     type: Boolean,
     require: false
   },
+  create:{
+    type: Boolean,
+    require: false
+  },
   deleteType:{
     type: String,
     require: false
@@ -38,6 +42,22 @@ const modfiicationSchema = new Schema({
     require: false
   },
   fieldPValue: {
+    type: String,
+    require: false
+  },
+  sectionPName: {
+    type: String,
+    require: false
+  },
+  sectionCName: {
+    type: String,
+    require: false
+  },
+  sectionPText: {
+    type: String,
+    require: false
+  },
+  sectionNText: {
     type: String,
     require: false
   },

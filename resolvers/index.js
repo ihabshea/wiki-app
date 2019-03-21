@@ -104,9 +104,9 @@ module.exports = {
       }
     )
  },
- sections: async({articleId, language}) => {
-    const clanguage = Language.findOne({shorthand: language});
-   return Section.find({article: mongoose.types.ObjectId(articleId), language: clanguage.shorthand}).then(
+ sections: async({articleID, language}) => {
+    const clanguage = await Language.findOne({shorthand: language}).exec();
+   return Section.find({article: articleID, language: clanguage._id}).then(
      (sections) => {
        return sections.map(section => {
          return {...section._doc};
@@ -276,6 +276,35 @@ createTitle: async(args, req) => {
   const result = await title.save();
   return {...result._doc};
 },
+createSection: async(args, req) => {
+  if(!req.isAuthorized) {
+    throw new Error("Articles have to be created by users.")
+  }
+  const article = await Article.findOne({_id: args.articleID});
+  if(!article){
+    throw new Error("Invalid article");
+  }
+  const fLanguage = await Language.findOne({shorthand: args.language});
+  if(!fLanguage){
+    throw new Error("Invalid languauge");
+  }
+  const newsection = await Section({
+    author: req.userId,
+    article: article._id,
+    language: fLanguage._id,
+    createdOn: new Date().toISOString() 
+  });
+  const result = await newsection.save();
+  const newModification = await Modification({
+    article: article._id,
+    create: true,
+    section: result._id,
+    user: req._id,
+    lastModification: new Date().toISOString() 
+  });
+  await newModification.save();
+  return result;
+},
 createDescription: async(args, req) => {
   if(!req.isAuthorized) {
     throw new Error("Articles have to be created by users.")
@@ -320,6 +349,110 @@ deleteField: async(args, req) => {
   });
   const deletetField = await Field.deleteOne({_id: field._id});
   const result = await modification.save();
+  return result;
+},
+updateSectionContent: async(args, req) => {
+  if(!req.isAuthorized){
+    throw new Error("You have to be logged in.")
+  }
+  const section  = await Section.findOne({_id: args.sectionID}).exec();
+  let sectionexists = false;
+  if(section.content){
+    sectionexists =  true;
+  }
+  const article = await Article.findOne({_id: section.article}).exec();
+  if(!article){
+    throw new Error("Invalid article");
+  }
+  let ptext = section.content;
+  section.content = args.content;
+  const result = await section.save();
+  if(sectionexists){
+    const modification = await Modification({
+      user: req.userId,
+      article: article._id,
+      section : section._id,
+      sectionPText: ptext,
+      sectionNText: section.content,
+      lastModification: new Date().toISOString()
+    });
+    const t = await modification.save();
+  }else{
+    const modification = await Modification({
+      user: req.userId,
+      article: article._id,
+      section : section._id,
+      sectionNText: section.content,
+      lastModification: new Date().toISOString()
+    });
+    const t = await modification.save();
+  }
+  return result;
+},
+deleteSection:  async(args, req) => {
+  if(!req.isAuthorized){
+    throw new Error("You have to be logged in.")
+  }
+  const section  = await Section.findOne({_id: args.sectionID}).exec();
+  let sectionexists = false;
+  const article = await Article.findOne({_id: section.article}).exec();
+  if(!article){
+    throw new Error("Invalid article");
+  }
+  await Section.deleteOne({_id: args.sectionID}).exec();
+  const modification = await Modification({
+      user: req.userId,
+      article: article._id,
+      section : section._id,
+      delete: true,
+      deleteType: "section",
+      sectionCName: section.title,
+      sectionNText: section.content,
+      lastModification: new Date().toISOString()
+  });
+  const result = await modification.save();
+
+  // const deletetField = await Field.deleteOne({_id: field._id});
+  return result;
+},
+updateSectionTitle: async(args, req) => {
+  if(!req.isAuthorized){
+    throw new Error("You have to be logged in.")
+  }
+  const section  = await Section.findOne({_id: args.sectionID}).exec();
+  let sectionexists = false;
+  if(section.title){
+    sectionexists =  true;
+  }
+  const article = await Article.findOne({_id: section.article}).exec();
+  if(!article){
+    throw new Error("Invalid article");
+  }
+  let ptitle = section.title;
+  section.title = args.title;
+  const result = await section.save();
+  if(sectionexists){
+    const modification = await Modification({
+      user: req.userId,
+      article: article._id,
+      section : section._id,
+      sectionPName: ptitle,
+      sectionCName: section.title,
+      lastModification: new Date().toISOString()
+    });
+    const t = await modification.save();
+  }else{
+    const modification = await Modification({
+      user: req.userId,
+      article: article._id,
+      section : section._id,
+      sectionCName: section.title,
+      lastModification: new Date().toISOString()
+    });
+    const t = await modification.save();
+    // await modification.save();
+  }
+  // const deletetField = await Field.deleteOne({_id: field._id});
   return result;
 },
 updateField: async(args, req) => {

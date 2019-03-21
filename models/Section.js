@@ -3,6 +3,7 @@ const Schema = mongoose.Schema;
 const User = require('./User');
 const Modification = require('./User');
 const Article = require('./Article');
+const Language = require('./Language');
 const sectionSchema = new Schema({
   author: {
     type: Schema.Types.ObjectId,
@@ -16,9 +17,17 @@ const sectionSchema = new Schema({
     type: String,
     required: true
   },
+  language: {
+    type: Schema.Types.ObjectId,
+    ref: 'Language'
+  },
   title:{
     type: String,
-    ref: 'user'
+    require: false
+  },
+  content: {
+    type: String,
+    require:false
   },
   modifiers:
   [{
