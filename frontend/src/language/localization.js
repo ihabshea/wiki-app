@@ -8,6 +8,7 @@ let strings = new LocalizedStrings({
    untitledarticle:"Untitled Article",
    article: "article",
    section: "section",
+   whatup: "What is up?",
    home: "Home",
    languages: "Languages",
    selectLanguage: "Select a language. Cancelling sets the language to English by default.",
@@ -18,8 +19,11 @@ let strings = new LocalizedStrings({
    done: "done",
    addfield:"Add a field",
    name:  "name",
+   providedeletereason: "Provide a reason for the deletion of",
    value: "value",
-   editmode: "Edit Mode"
+   editmode: "Edit Mode",
+   confirm: "Confirm",
+   youhavetodeletereason: "You have to provide a deletion reason"   
  },
  ar: {
    hello:"مرحباً بالعالم",
@@ -28,8 +32,10 @@ let strings = new LocalizedStrings({
    home: "الرئيسية",
    untitledarticle:"مقال بدون عنوان",
    article: "مقال",
+   whatup: "ما الذي يحدث؟",
    section: "قسم",
    languages: "لغات",
+   providedeletereason: "وفر سبباً  لحذفك",
    selectLanguage:" إختر لغة، الإلغاء يحدد الإنجليزية كلغة أساسية",
    itallows: "نسمح لك بكتابة المقالات بلغات متعددة، إختر اللغة التي تود أن تكتب فيها مقالك الآن. يمكك ا لتعديل في المستقل.",
    cancel : "إلغاء",
@@ -39,7 +45,9 @@ let strings = new LocalizedStrings({
    value: "القيمة",
    setDescription: "حدد وصفاً للمقال",
    done: "تم",
-   editmode:"وضع التعديل"
+   editmode:"وضع التعديل",
+   confirm  : "تأكيد",
+   youhavetodeletereason: "يجب أن توفر سبباً للحذف"
  },
  es:{
   hello:"¡Hola Mundo!",

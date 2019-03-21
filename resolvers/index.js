@@ -132,9 +132,9 @@ module.exports = {
      }
    )
  },
- fields: async({articleId, language}) => {
-    const clanguage = Language.findOne({shorthand: language});
-   return Field.find({article: mongoose.types.ObjectId(articleId), language: clanguage.shorthand}).then(
+ fields: async({articleID, language}) => {
+    const clanguage = await Language.findOne({shorthand: language}).exec();
+   return Field.find({article: articleID, language: clanguage._id}).then(
      (fields) => {
        return fields.map(field => {
          return {...field._doc};
@@ -157,9 +157,9 @@ module.exports = {
    return title;
 
  },
- description: async({articleId, language}) => {
+ description: async({articleID, language}) => {
    const clanguage = await Language.findOne({shorthand: language}).exec();
-   const description = await Description.findOne({article: articleId, language: clanguage._id}).exec();
+   const description = await Description.findOne({article: articleID, language: clanguage._id}).exec();
    return description;
  },
  language: async({language}) => {
@@ -288,16 +288,108 @@ createDescription: async(args, req) => {
   if(!fLanguage){
     throw new Error("Invalid languauge");
   }
-  article.languages.push(fLanguauge.shorthand);
+  article.languages.push(fLanguage._id);
   await article.save();
   const description = await Description({
     text: args.descriptionInput.text,
-    language: fLanguauge.shorthand,
+    language: fLanguage._id,
     article: article._id,
     lastModification: new Date().toISOString()
   });
   const result = await description.save();
   return {...result._doc};
+},
+deleteField: async(args, req) => {
+  if(!req.isAuthorized){
+    throw new Error("You have to be logged in.")
+  }
+  const field  = await Field.findOne({_id: args.fieldID}).exec();
+  const article = await Article.findOne({_id: field.article}).exec();
+  if(!article){
+    throw new Error("Invalid article");
+  }
+  const modification = await Modification({
+    explanation: args.reason,
+    article: article._id,
+    user: req.userId,
+    delete: true,
+    deleteType: field,
+    fieldPName: field.name,
+    fieldPValue: field.value,
+    lastModification: new Date().toISOString()
+  });
+  const deletetField = await Field.deleteOne({_id: field._id});
+  const result = await modification.save();
+  return result;
+},
+updateField: async(args, req) => {
+  if(!req.isAuthorized){
+    throw new Error("You have to be logged in.")
+  }
+  const field  = await Field.findOne({_id: args.fieldID}).exec();
+  const article = await Article.findOne({_id: field.article}).exec();
+  if(!article){
+    throw new Error("Invalid article");
+  }
+  let pvalue = field.value;
+  field.value = args.newvalue;
+  const result = await field.save();
+  const modification = await Modification({
+    explanation: args.reason,
+    user: req.userId,
+    article: article._id,
+    fieldPName: field.name,
+    fieldPValue: pvalue,
+    fieldNValueu: field.value,
+    lastModification: new Date().toISOString()
+  });
+  // const deletetField = await Field.deleteOne({_id: field._id});
+  await modification.save();
+  return result;
+},
+createField: async(args, req) => {
+  if(!req.isAuthorized) {
+    throw new Error("Articles have to be created by users.")
+  }
+  const article = await Article.findOne({_id: args.fieldInput.articleId});
+  if(!article){
+    throw new Error("Invalid article");
+  }
+  const fLanguage = await Language.findOne({shorthand: args.fieldInput.language}).exec();
+  if(!fLanguage){
+    throw new Error("Invalid languauge");
+  }
+  article.languages.push(fLanguage._id);  
+  await article.save();
+  const field = await Field({
+    author: req.userId,
+    name: args.fieldInput.name,
+    value:  args.fieldInput.value,
+    language: fLanguage._id,
+    article: article._id,
+    lastModification: new Date().toISOString()
+  });
+  const result = await field.save();
+  return {...result._doc};
+},
+updateDescription: async(args, req) => {
+  if(!req.isAuthorized) {
+    throw new Error("Articles have to be modified by users.")
+  }
+  const article = await Article.findOne({_id: args.descriptionInput.articleId});
+  if(!article){
+    throw new Error("Invalid article");
+  }
+  const fLanguage = await Language.findOne({shorthand: args.descriptionInput.language});
+  if(!fLanguage){
+    throw new Error("Invalid languauge");
+  }
+
+  const description = await Description.findOne({article: article._id, language:fLanguage._id}).exec();
+  description.text = descriptionInput.text;
+  await desciption.save();
+
+  return desciption;
 }
 };
 //Bind users to related queries

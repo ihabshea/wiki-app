@@ -27,7 +27,7 @@ const fieldSchema = new Schema({
   },
   order: {
     type: Number,
-    required: true
+    required: false
   },
   lastModification:{
     type: String,

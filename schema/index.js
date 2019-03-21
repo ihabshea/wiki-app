@@ -29,9 +29,11 @@ buildSchema(`
     article: article!
     section: section
     field: field
+    fieldPName: String
+    fieldPValue: String
     explanation: String!
     language: supportedLanguages!
-    date: String!
+    lastModification: String!
   }
   type section {
     _id: ID!
@@ -103,21 +105,31 @@ buildSchema(`
     language: String!
     articleId: ID!
   }
+  input FieldInput{
+    name: String!
+    value: String!
+    articleId: ID!
+    language:  String!
+  }
   type RootMutation{
     registerUser(userInput: UserInput): person!
     createArticle: article!
     createDescription(descriptionInput: DescriptionInput): description!
+    updateDescription(descriptionInput: DescriptionInput): description!
     createTitle(titleInpt: TitleInput): title!
+    createField(fieldInput: FieldInput): field!
     createSection(sectionInput: SectionInput): section!
+    updateField(fieldID: ID!, newvalue: String!): field!
+    deleteField(fieldID: ID!, reason: String!): modification!
     createLanguage(name: String, shorthand: String): supportedLanguages!
   }
   type RootQuery{
     articles(language: String!): [article!]!
     article(id: ID!, language: String!): article!
     users: [person!]
-    sections(articleID: ID!,language: String!): [section!]!
+    sections(articleID: ID!,language: String!): [section!]
     section(sectionID: ID!,language: String!): section!
-    fields(articleID: ID!,language: String!): [field!]!
+    fields(articleID: ID!,language: String!): [field!]
     field(articleID: ID!,language: String!): field!
     title(articleID: ID!, language: String!): title
     description(articleID: ID!, language: String!): description

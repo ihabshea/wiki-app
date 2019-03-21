@@ -4,6 +4,37 @@ import AuthContext from '../context/auth';
 import useEffectAsync from '../helpers/useEffectAsync';
 import strings from '../language/localization';
 import LangContext from '../language/languageContext';
+import {theme, useStyles} from '../theme/theme';
+import { ThemeProvider } from "@material-ui/styles";
+import classNames from 'classnames';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import Input from '@material-ui/core/Input';
+import IconButton from '@material-ui/core/IconButton';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
+import InputBase from '@material-ui/core/InputBase';
+import InputLabel from '@material-ui/core/InputLabel';
+import TextField from '@material-ui/core/TextField';
+import FormControl from '@material-ui/core/FormControl'
+import ExpansionPanel from '@material-ui/core/ExpansionPanel';
+import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
+import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
+import ExpansionPanelActions from '@material-ui/core/ExpansionPanelActions';
+import Typography from '@material-ui/core/Typography';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import Paper from '@material-ui/core/Paper';
+import Grid from '@material-ui/core/Grid';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
+import Avatar from '@material-ui/core/Avatar';
+
+import Chip from '@material-ui/core/Chip';
+import Button from '@material-ui/core/Button';
+import Divider from '@material-ui/core/Divider';
 import {
   Collapse,
   Navbar,
@@ -14,29 +45,36 @@ import {
   NavLink,
   UncontrolledDropdown,
   DropdownToggle,
+  Alert,
   DropdownMenu,Table,
   DropdownItem,
- Button, Modal, ModalHeader, ModalBody, ModalFooter, InputGroup, InputGroupText, InputGroupAddon,
-Col, Row, Form, Container, FormGroup, Label, Input, FormText, ListGroup, ListGroupItem, Jumbotron } from 'reactstrap';
+Modal, ModalHeader, ModalBody, ModalFooter, InputGroup, InputGroupText, InputGroupAddon,
+Col, Row, Form, Container, FormGroup, Label, FormText, ListGroup, ListGroupItem, Jumbotron } from 'reactstrap';
 
 const Article = ({match}) => {
+  let nodeleteInput = false;
+  const classes = useStyles();
   const lContext = useContext(LangContext);
   const authD =  useContext(AuthContext);
   const [fields, reloadFields] = useState([]);
+  const [fieldDeleteR, setDR] = useState("");
   const [fieldForm, setFieldForm] = useState([{fieldname: "en",  fieldvalue:"English"}]);
   const [preferredLanguage,setLang] = useState(null);
   const [addField, setAddField] =  useState(false);
   const [editMode, setEM] = useState(false);
   const [modal, setModal] = useState(true);
+  const [EFV, setEFV] = useState('');
   const [loaded, setLoaded] = useState(false);
   const [title, setTitle] = useState({text: null});
   const [editTitle, setET] = useState(false);
   const [currentTitle, setCT] = useState('');
   const [description, setDescription] = useState({text: null});
   const [editDescrition, setED] = useState(false);
+  const [deletemodal, setDeleteModal] = useState(false);
   const [currentDescription, setCD] = useState('');
   const [languages, setLanguages] = useState([{shorthand: "en",  name:"English"}]);
   const [alanguages, setALanguages] = useState([{shorthand: "en",  name:"English"}]);
+  const [editableField, setEF] = useState(null);
   const fetchLanguages = async() => {
     let raw;
     const requestBody = {
@@ -159,6 +197,7 @@ const Article = ({match}) => {
     query : `
       query{
         fields(articleID:"${match.params.id}", language:"${lpreferredLanguage}"){
+          _id
           name
           value
         }
@@ -404,8 +443,7 @@ const Article = ({match}) => {
    }
    const lpreferredLanguage = localStorage.getItem("language");
    const rtlLanguage =( lpreferredLanguage === "ar" ||lpreferredLanguage === "he");
-   const createField = async (e) => {
-     e.preventDefault();
+   const createAField = async () => {
      setLoaded(false);
      const requestBody = {
 
@@ -443,19 +481,385 @@ const Article = ({match}) => {
      }).catch(err => {
      throw(err);
      })
+     await fetchTitle();
+     await fetchDescription();
      await fetchFields();
      await fetchALanguages(match.params.id);
      setET(false);
      setLoaded(true);
    }
+   const updateField = async (id) => {
+    setLoaded(false);
+    const requestBody = {
+
+    query : `
+    mutation {
+      updateField(fieldID: "${id}",  newvalue: "${EFV}"){
+        name
+        value
+      }
+    }`
+    };
+    await fetch('http://localhost:9000/graphql',
+
+    {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer '+ authD.token
+      }
+    }
+    )
+    .then( res => {
+      if(res.status !== 200 && res.status !== 201){
+        throw new Error('failed');
+      }
+    return res.json();
+    }).then(resData => {
+    console.log(resData.data.title);
+    if(resData.data.title){
+      setTitle(resData.data.title);
+    }else{
+      setTitle({text: null});
+    }
+    }).catch(err => {
+    throw(err);
+    })
+    await fetchTitle();
+    await fetchDescription();
+    await fetchFields();
+    await fetchALanguages(match.params.id);
+    setET(false);
+    setLoaded(true);
+  }
+   const createField = async (e) => {
+    e.preventDefault();
+    setLoaded(false);
+    const requestBody = {
+
+    query : `
+    mutation {
+      createField(fieldInput:{articleId:"${match.params.id}", name: "${fieldForm.fieldname}", value: "${fieldForm.fieldvalue}", language: "${preferredLanguage}"}){
+        name
+        value
+      }
+    }`
+    };
+    await fetch('http://localhost:9000/graphql',
+
+    {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer '+ authD.token
+      }
+    }
+    )
+    .then( res => {
+      if(res.status !== 200 && res.status !== 201){
+        throw new Error('failed');
+      }
+    return res.json();
+    }).then(resData => {
+    console.log(resData.data.title);
+    if(resData.data.title){
+      setTitle(resData.data.title);
+    }else{
+      setTitle({text: null});
+    }
+    }).catch(err => {
+    throw(err);
+    })
+    await fetchFields();
+    setET(false);
+    setLoaded(true);
+  }
+  const deleteField = async (id) => {
+    setLoaded(false);
+    const requestBody = {
+
+    query : `
+    mutation {
+      deleteField(fieldID: "${id}", reason: "${fieldDeleteR}"){
+        explanation
+      }
+    }`
+    };
+    await fetch('http://localhost:9000/graphql',
+
+    {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer '+ authD.token
+      }
+    }
+    )
+    .then( res => {
+      if(res.status !== 200 && res.status !== 201){
+        throw new Error('failed');
+      }
+    return res.json();
+    }).then(resData => {
+    console.log(resData.data.title);
+    if(resData.data.title){
+      setTitle(resData.data.title);
+    }else{
+      setTitle({text: null});
+    }
+    }).catch(err => {
+    throw(err);
+    })
+    await fetchTitle();
+    await fetchFields();
+    await fetchALanguages(match.params.id);
+    setET(false);
+    setLoaded(true);
+  }
+   const enterSubmit = (event) =>{
+     event.preventDefault();
+     
+    // if (event.keyCode === 13) {
+    //   event.preventDefault();
+     
+    // }
+     createAField();
+     setAddField(false);
+     setFieldForm(["",""]);
+   }
+
+  //  const deleteField = async (id) =>{
+  //   if(fieldDeleteR === ""){
+  //     nodeleteInput = true;
+  //   }else{
+  //     setLoaded(false);
+  //     const requestBody = {
+  
+  //     query : `
+  //     mutation {
+  //       deleteField(fieldID: "${id}", reason: "${fieldDeleteR}"){
+  //         explanation
+  //       }
+  //     }`
+  //     };
+  //     await fetch('http://localhost:9000/graphql',
+  
+  //     {
+  //       method: 'POST',
+  //       body: JSON.stringify(requestBody),
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Authorization': 'Bearer '+ authD.token
+  //       }
+  //     }
+  //     )
+  //     .then( res => {
+  //       if(res.status !== 200 && res.status !== 201){
+  //         throw new Error('failed');
+  //       }
+  //     return res.json();
+  //     }).then(resData => {
+  //       console.log(resData);
+  //     }).catch(err => {
+  //     throw(err);
+  //     })
+  //     await fetchFields();
+  //     await fetchALanguages(match.params.id);
+  //     setET(false);
+  //     setLoaded(true);
+  //     deletetoggle();
+  //   }
+    
+  //   console.log(id);
+  //  }
+   const deletetoggle = () => {
+      setDeleteModal(!deletemodal);
+   }
   return (
     <LangContext.Consumer>
       {lContext => {
         return (
-      <Container>
-      <Row>
-        <Col xs="4">
-        <div class="card">
+        <div style={{marginTop:30}}>
+          <Grid container spacing={18}>
+
+      <Grid item xs={4}>
+        <ExpansionPanel defaultExpanded>
+        <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
+          <div className={classes.column}>
+            <Typography className={classes.heading}>
+            {title.text &&
+              <>{title.text}</>
+            }
+            {!title.text &&
+              <>{strings.untitledarticle}</>
+            }
+            </Typography>
+          </div>
+        </ExpansionPanelSummary>
+        <ExpansionPanelDetails className={classes.details}>
+        {loaded && 
+        <>
+        <List style={{paddingTop:"1px"}}  className={classes.root}>
+        {fields.map((field) => {  
+          let fieldid = field._id;
+              return (
+                fieldid != editableField ?
+
+                <ListItem style={{padding:"5px"}}>
+                  <ListItemText primary={field.name} secondary={field.value} />
+                  {editMode && 
+                      <>
+                      <i onClick={() => { setEF(field._id); setEFV(field.value);   } } style={{cursor:"pointer"}} class="material-icons">
+                      edit
+                      </i>
+
+                      </>
+                  }
+                </ListItem>
+                :
+                <>
+                <ListItem style={{padding:"5px"}}>
+                {editMode && 
+                <FormControl className={classes.margin}>
+   
+        <TextField
+          label={field.name}
+          value={EFV}
+          onChange={(e) => setEFV(e.target.value)}
+          classes={{
+            underline: classes.cssUnderline,
+          }}
+          
+        />
+      </FormControl>
+                }
+      <ListItemSecondaryAction>
+                <IconButton onClick={() => { updateField(field._id) }}  aria-label="Delete">
+          <i class="material-icons">
+                save
+          </i>
+        </IconButton>
+         <IconButton onClick={deletetoggle}  aria-label="Delete">
+          <i class="material-icons">
+                delete
+          </i>
+        </IconButton>
+
+        <Dialog
+        open={deletemodal}
+        onClose={deletetoggle}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{strings.deleteField}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+          {strings.providedeletereason}
+                  
+                  <Input type="textarea" value={fieldDeleteR} onChange={(e)=>setDR(e.target.value)} />
+                  {nodeleteInput && 
+                     <Alert color="danger">
+                     {strings.youhavetodeletereason}
+                    </Alert>
+                  }
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={deletetoggle} color="primary">
+            {strings.cancel}
+          </Button>
+          <Button onClick={() => deleteField(field._id)}  color="primary" autoFocus>
+            {strings.delete}
+          </Button>
+        </DialogActions>
+      </Dialog>
+       </ListItemSecondaryAction>
+               
+                </ListItem>
+                </>
+                
+              )
+        })}
+                  {editMode && 
+          <>
+          {addField && 
+           <form onSubmit={createField}>
+             <FormControl className={classes.margin}>
+        <InputLabel
+          htmlFor="custom-css-standard-input"
+          classes={{
+            root: classes.cssLabel,
+            focused: classes.cssFocused,
+          }}
+        >
+          {strings.name}
+        </InputLabel>
+        <Input name="fieldname"
+        onChange={changeFieldProp} value={fieldForm.fieldname}
+          id="custom-css-standard-input"
+          classes={{
+            underline: classes.cssUnderline,
+          }}
+        />
+      </FormControl>
+      <FormControl className={classes.margin}>
+        <InputLabel
+          htmlFor="custom-css-standard-input"
+          classes={{
+            root: classes.cssLabel,
+            focused: classes.cssFocused,
+          }}
+        >
+         Field Value
+        </InputLabel>
+        <Input name="fieldvalue"
+        onChange={changeFieldProp} value={fieldForm.fieldvalue}
+          id="custom-css-standard-input"
+          classes={{
+            underline: classes.cssUnderline,
+          }}
+        />
+      </FormControl>
+            {/* <table>
+              <tr>
+               
+                    <td style={{width:"30%"}}><input style={{width:"100%"}} name="fieldname" onChange={changeFieldProp} value={fieldForm.fieldname} placeholder={strings.name} /></td>
+                    <td style={{width:"70%"}}><input onKeyUp={enterSubmit} style={{width:"100%"}} name="fieldvalue" onChange={changeFieldProp} value={fieldForm.fieldvalue}  placeholder={strings.value}/></td>
+      
+              </tr>
+            </table> */}
+                   <Divider />
+        <ExpansionPanelActions>
+          <Button size="small">Cancel</Button>
+          <Button onClick={enterSubmit} size="small" color="primary">
+            Save
+          </Button>
+        </ExpansionPanelActions>
+            </form>
+          }
+          {!addField &&
+            <Button onClick={() => setAddField(true)} style={{marginTop:5}} outline color="secondary">{strings.addfield}</Button>
+          }
+          </>
+          }
+              </List>
+            </>
+            }
+            {!loaded && 
+                  <div class="sk-folding-cube">
+                  <div class="sk-cube1 sk-cube"></div>
+                  <div class="sk-cube2 sk-cube"></div>
+                  <div class="sk-cube4 sk-cube"></div>
+                  <div class="sk-cube3 sk-cube"></div>
+                </div>  
+            }
+        </ExpansionPanelDetails>
+     
+              </ExpansionPanel>
+        {/* <div class="card">
           <div class="card-header">
       
             {title.text &&
@@ -467,11 +871,37 @@ const Article = ({match}) => {
           </div>
           <div className="card-body" style={{padding:0}}>
           <Table>
-            {fields.map((field) => {
+            {fields.map((field) => {  
               return (
                 <tr style={{padding:15}}>
                   <td style={{width:"30%"}}>{field.name}</td>
-                  <td style={{width:"70%"}}>{field.value}</td>
+                  <td style={{width:"70%"}}>{field.value}  
+            {editMode &&  
+              <>
+              <Button  onClick={deletetoggle} close aria-label="Cancel">
+                <span aria-hidden>&ndash;</span>
+              </Button>
+        
+              <Modal isOpen={deletemodal} toggle={deletetoggle}>
+                <ModalHeader toggle={deletetoggle}>{strings.whatup}</ModalHeader>
+                <ModalBody>
+                  {strings.providedeletereason}
+                  
+                  <Input type="textarea" value={fieldDeleteR} onChange={(e)=>setDR(e.target.value)} />
+                  {nodeleteInput && 
+                     <Alert color="danger">
+                     {strings.youhavetodeletereason}
+                    </Alert>
+                  }
+                </ModalBody>
+                <ModalFooter>
+                  <Button color="primary" onClick={deleteField(field._id)}>{strings.confirm}</Button>{' '}
+                  <Button color="secondary" onClick={deletetoggle}>{strings.cancel}</Button>
+                </ModalFooter>
+              </Modal>
+              </>
+            }
+            </td>
                 </tr>
 
               )
@@ -484,9 +914,9 @@ const Article = ({match}) => {
             <table>
               <tr>
                
-                    <td style={{width:"30%"}}><Input name="fieldname" onChange={changeFieldProp} value={fieldForm.fieldname} placeholder={strings.name} /></td>
-                    <td style={{width:"70%"}}><Input name="fieldvalue" onChange={changeFieldProp} value={fieldForm.fieldvalue}  placeholder={strings.value}/><input type="submit" /></td>
-          
+                    <td style={{width:"30%"}}><input style={{width:"100%"}} name="fieldname" onChange={changeFieldProp} value={fieldForm.fieldname} placeholder={strings.name} /></td>
+                    <td style={{width:"70%"}}><input onKeyUp={enterSubmit} style={{width:"100%"}} name="fieldvalue" onChange={changeFieldProp} value={fieldForm.fieldvalue}  placeholder={strings.value}/></td>
+      
               </tr>
             </table>
             </form>
@@ -497,29 +927,29 @@ const Article = ({match}) => {
           </>
           }
           </div>
-        </div>
-        <div class="card">
-          <div class="card-header">
+        </div> */}
+        <ExpansionPanel defaultExpanded>
+        <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
             {strings.languages}
-          </div>
-          <div class="card-body" style={{padding:0}}>
-          <ul className="list-group list-group-flush">
+        </ExpansionPanelSummary>
+        <ExpansionPanelDetails className={classes.details}>
           {alanguages.map(language => {
             return(
 
-              <li style={{"margin":"0px !important", "padding:": "0px  !important"}} class="list-group-item" onClick={async () => {setLang(language.shorthand); await lContext.changeLanguage(language.shorthand);  }} class="list-group-item">{language.name}</li>
+              <ListItemText primary={language.name} style={{"margin":"0px !important", "padding:": "0px  !important"}} onClick={async () => {setLang(language.shorthand); await lContext.changeLanguage(language.shorthand);  }} />
 
             )
 
         })}
          {editMode && 
           <Button onClick={() => setAddField(true)} style={{marginTop:5}} outline color="secondary">Add a new language</Button>
-         }
-        </ul>
-          </div>
-        </div>
 
-        </Col>
+         }
+        </ExpansionPanelDetails>
+          </ExpansionPanel>
+        
+
+        </Grid>
         <Col xs="8">
         {!lpreferredLanguage && <>
           <Modal isOpen="true" >
@@ -640,8 +1070,8 @@ const Article = ({match}) => {
         </div>
 
         </Col>
-      </Row>
-      </Container>
+      </Grid>
+      </div>
         )
       }}
     </LangContext.Consumer>
