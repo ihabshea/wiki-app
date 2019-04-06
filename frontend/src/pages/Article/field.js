@@ -48,20 +48,21 @@ import Stepper from '@material-ui/core/Stepper';
 import Step from '@material-ui/core/Step';
 import StepLabel from '@material-ui/core/StepLabel';
 import {Alert} from 'reactstrap';
-const Field = ({field, editMode, classes, updateField,deleteField,deletetoggle,nodeleteInput}) => {
-    const [isDead, setDead] = useState(false);
-    const [birthDate, setBD] = useState(null);
+const Field = ({field, editMode, classes, fetchTitle, isDead, birthDate, updateField,deleteField,nodeleteInput}) => {
+    // const [isDead, setDead] = useState(false);
+    // const [birthDate, setBD] = useState(null);
     const [fieldDeleteR, setDR] = useState("");
 
     const [deletemodal, setDeleteModal] = useState(false);
   const [EFV, setEFV] = useState('');
   const [degree, setDG] = useState(null);
   const [fieldForm, setFieldForm] = useState([{fieldname: "en",  fieldvalue:"English"}]);
-  const [activeStep, setActiveStep] = useState(0);
   const [open, setOpen] = React.useState(false);
   const [wizardDialog, setWZD] = useState(false);
   const [fieldC,  setFieldC] = useState(null);
-
+  const deletetoggle = () => {
+    setDeleteModal(!deletemodal);
+ }
   const [loaded, setLoaded] = useState(false);
   const [endedDeath, setEndDead] = useState(false);
     const [editableField, setEF] = useState(null);
