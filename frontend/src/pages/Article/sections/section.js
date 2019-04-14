@@ -27,15 +27,19 @@ const Section = ({ classes, authD, fetchSections, section, editMode }) => {
     const [sectionContent, setSC] = useState('');
     const [title, setTitle] = useState({ text: null });
     const [SCEdit, setSCE] = useState(false);
+    const [currentSection, setCS] = useState(section);
+    const [cTitle, setCT] = useState(section.title);
     const [cSC, setCSC] = useState(null);
     const [sectionCID, setSCID] = useState(null);
     const [loaded, setLoaded] = useState(true);
     let lpreferredLanguage = localStorage.getItem("language");
-    let currentSection = section;
+
     let sectionid = section._id;
-    useEffectAsync( async() => {
+    useEffectAsync(async () => {
         setCSC(section.content);
-    },[]);
+        // setCS(section);
+    }, []);
+
     const fetchSection = async () => {
         setLoaded(false);
         const requestBody = {
@@ -65,7 +69,7 @@ const Section = ({ classes, authD, fetchSections, section, editMode }) => {
                 }
                 return res.json();
             }).then(resData => {
-                currentSection = resData.data.section;
+                setCS(resData.data.section);
                 setLoaded(true);
             });
     }
@@ -206,7 +210,40 @@ const Section = ({ classes, authD, fetchSections, section, editMode }) => {
                     <h4 style={{ marginBottom: 0 }}>
                         {section.title ?
                             <>
-                                {section.title}
+                                {sectionid != sectionedit ?
+                                    <span onClick={() => setSE(sectionid)} style={{ cursor: "pointer" }}>
+                                        {section.title}
+                                    </span>
+                                    :
+                                    <>
+                                        <FormControl className={classes.margin}>
+                                            <InputLabel
+                                                htmlFor="custom-css-standard-input"
+                                                classes={{
+                                                    root: classes.cssLabel,
+                                                    focused: classes.cssFocused,
+                                                }}
+                                            >
+                                                Section  Title
+                                            </InputLabel>
+
+                                            <Input
+                                                id="custom-css-standard-input"
+                                                value={sectionTitle}
+                                                onChange={(e) => setST(e.target.value)}
+                                                classes={{
+                                                    underline: classes.cssUnderline,
+                                                }}
+                                            />
+                                            <IconButton onClick={() => { updateSectionTitle(section._id) }} aria-label="update">
+                                                <i class="material-icons">
+                                                    save
+                                          </i>
+                                            </IconButton>
+                                        </FormControl>
+                                    </>
+                                }
+
 
                                 {editMode &&
                                     <>
@@ -242,9 +279,41 @@ const Section = ({ classes, authD, fetchSections, section, editMode }) => {
 
                             <>
                                 {sectionid != sectionedit ?
-                                    <span onClick={() => setSE(sectionid)} style={{ cursor: "pointer" }}>
-                                        Untitled Section
+                                    <>
+                                        <span onClick={() => setSE(sectionid)} style={{ cursor: "pointer" }}>
+                                            Untitled Section
             </span>
+                                        {editMode &&
+                                            <>
+                                                <IconButton onClick={() => setSDD(!sectionDeleteDialog)} aria-label="Delete">
+                                                    <i class="material-icons">
+                                                        delete
+  </i>
+                                                </IconButton>
+                                                <Dialog
+                                                    open={sectionDeleteDialog}
+                                                    onClose={() => setSDD(!sectionDeleteDialog)}
+                                                    aria-labelledby="alert-dialog-title"
+                                                    aria-describedby="alert-dialog-description"
+                                                >
+                                                    <DialogTitle id="alert-dialog-title">{"Delete section"}</DialogTitle>
+                                                    <DialogContent>
+                                                        <DialogContentText id="alert-dialog-description">
+                                                            Are you sure?
+  </DialogContentText>
+                                                    </DialogContent>
+                                                    <DialogActions>
+                                                        <Button onClick={() => setSDD(!sectionDeleteDialog)} color="primary">
+                                                            No
+  </Button>
+                                                        <Button onClick={() => deleteSection(section._id)} color="primary" autoFocus>
+                                                            Yes
+  </Button>
+                                                    </DialogActions>
+                                                </Dialog>
+                                            </>
+                                        }
+                                    </>
                                     :
                                     <>
                                         <FormControl className={classes.margin}>
@@ -280,23 +349,23 @@ const Section = ({ classes, authD, fetchSections, section, editMode }) => {
                         }
                     </h4>
                     <Divider style={{ width: "100%", marginLeft: 0, marginBottom: 5 }} variant="middle" />
-                    {currentSection.content ? 
-                    <>  
-                    {!SCEdit &&
-                    <div style={{cursor:"pointer"}} onClick={() =>{ setSCE(true); }} dangerouslySetInnerHTML={{ __html: currentSection.content }}>
-                    </div> 
-                    }
-                    {SCEdit && 
-                    <>
-                        <WigEditor sectionContent={cSC} setSC={setCSC} />
-                        <IconButton onClick={updateSectionContent} aria-label="update">
-                                    <i class="material-icons">
-                                        save
+                    {currentSection.content ?
+                        <>
+                            {!SCEdit &&
+                                <div style={{ cursor: "pointer" }} onClick={() => { setSCE(true); }} dangerouslySetInnerHTML={{ __html: currentSection.content }}>
+                                </div>
+                            }
+                            {SCEdit &&
+                                <>
+                                    <WigEditor sectionContent={cSC} setSC={setCSC} />
+                                    <IconButton onClick={updateSectionContent} aria-label="update">
+                                        <i class="material-icons">
+                                            save
   </i>
-                                </IconButton>
-                    </>
-                    }
-                    </> :
+                                    </IconButton>
+                                </>
+                            }
+                        </> :
                         sectionid != sectionCID ?
                             <>
 
