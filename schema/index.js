@@ -175,7 +175,7 @@ buildSchema(`
     article(id: ID!, language: String!): article!
     users: [person!]
     sections(articleID: ID!,language: String!): [section!]
-    section(sectionID: ID!,language: String!): section!
+    section(sectionId: ID!): section!
     fields(articleID: ID!,language: String!): [field!]
     field(articleID: ID!,language: String!): field!
     title(articleID: ID!, language: String!): title

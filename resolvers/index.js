@@ -168,13 +168,9 @@ module.exports = {
        });
      });
  },
- section: async({sectionId, language}) => {
-    const clanguage = Language.findOne({shorthand: language});
-   return Section.findOne({_id: mongoose.types.ObjectId(sectionId), language: clanguage.shorthand}).then(
-     (section) => {
-       return {...section._doc};
-     }
-   )
+ section: async({sectionId}) => {
+   const section  = await Section.findOne({_id: sectionId}).exec();
+   return section;
  },
  users: async({language}) => {
    return User.find().then(
