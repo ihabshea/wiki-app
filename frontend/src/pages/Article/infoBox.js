@@ -197,61 +197,17 @@ const fetchFields = async() => {
 
 
       
-     const updateField = async (id) => {
-        setLoaded(false);
-        const requestBody = {
-        query : `
-        mutation {
-          updateField(fieldID: "${id}",  newvalue: "${EFV}"){
-            name
-            value
-          }
-        }`
-        };
-        await fetch('http://localhost:9000/graphql',
     
-        {
-          method: 'POST',
-          body: JSON.stringify(requestBody),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer '+ authD.token
-          }
-        }
-        )
-        .then( res => {
-          if(res.status !== 200 && res.status !== 201){
-            throw new Error('failed');
-          }
-        return res.json();
-        }).then(resData => {
-        console.log(resData.data.title);
-        if(resData.data.title){
-          setTitle(resData.data.title);
-        }else{
-          setTitle({text: null});
-        }
-        }).catch(err => {
-        throw(err);
-        })
-        await fetchTitle();
-        // await fetchDescription();
-        await fetchFields();
-        // await fetchALanguages(articleId);
-        // setET(false);
-        setEF(null);
-        setLoaded(true);
-      }
   
     return (
         <ExpansionPanelDetails className={classes.details}>
         {loaded && 
         <>
         <List style={{paddingTop:"1px"}}  className={classes.root}>
-            <Fields isDead={isDead} birthDate={birthDate} classes={classes}  nodeleteInput={nodeleteInput} deleteField={deleteField} updateField={updateField} editMode={editMode} fields={fields} fetchTitle={fetchTitle} />
+            <Fields  setTitle={setTitle} fetchFields={fetchFields} authD={authD} isDead={isDead} birthDate={birthDate} classes={classes}  nodeleteInput={nodeleteInput} deleteField={deleteField} editMode={editMode} fields={fields} fetchTitle={fetchTitle} />
          {editMode && 
           <>
-          {addField && 
+          {addField &&  
           <CreateField 
           authD={authD} setTitle={setTitle} fetchTitle={fetchTitle} 
           fetchFields={fetchFields}  components={components} 

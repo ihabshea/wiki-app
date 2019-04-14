@@ -48,7 +48,7 @@ import Stepper from '@material-ui/core/Stepper';
 import Step from '@material-ui/core/Step';
 import StepLabel from '@material-ui/core/StepLabel';
 import {Alert} from 'reactstrap';
-const Field = ({field, editMode, classes, fetchTitle, isDead, birthDate, updateField,deleteField,nodeleteInput}) => {
+const Field = ({authD, fetchFields, setTitle, field, editMode, classes, fetchTitle, isDead, birthDate,deleteField,nodeleteInput}) => {
     // const [isDead, setDead] = useState(false);
     // const [birthDate, setBD] = useState(null);
     const [fieldDeleteR, setDR] = useState("");
@@ -62,7 +62,52 @@ const Field = ({field, editMode, classes, fetchTitle, isDead, birthDate, updateF
   const [fieldC,  setFieldC] = useState(null);
   const deletetoggle = () => {
     setDeleteModal(!deletemodal);
- }
+ }  
+   const updateField = async (id) => {
+    setLoaded(false);
+    const requestBody = {
+    query : `
+    mutation {
+      updateField(fieldID: "${id}",  newvalue: "${EFV}"){
+        name
+        value
+      }
+    }`
+    };
+    await fetch('http://localhost:9000/graphql',
+
+    {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer '+ authD.token
+      }
+    }
+    )
+    .then( res => {
+      if(res.status !== 200 && res.status !== 201){
+        throw new Error('failed');
+      }
+    return res.json();
+    }).then(resData => {
+    console.log(resData.data.title);
+    if(resData.data.title){
+      setTitle(resData.data.title);
+    }else{
+      setTitle({text: null});
+    }
+    }).catch(err => {
+    throw(err);
+    })
+    await fetchTitle();
+    // await fetchDescription();
+    await fetchFields();
+    // await fetchALanguages(articleId);
+    // setET(false);
+    setEF(null);
+    setLoaded(true);
+  }
   const [loaded, setLoaded] = useState(false);
   const [endedDeath, setEndDead] = useState(false);
     const [editableField, setEF] = useState(null);

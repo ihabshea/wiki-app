@@ -6,7 +6,14 @@ import strings from '../language/localization';
 import LangContext from '../language/languageContext';
 import {theme, useStyles} from '../theme/theme';
 import { ThemeProvider } from "@material-ui/styles";
+import WigEditor from './Article/sections/wig-editor'
 import classNames from 'classnames';
+import Card from '@material-ui/core/Card';
+import CardHeader from '@material-ui/core/CardHeader';
+import CardMedia from '@material-ui/core/CardMedia';
+import CardContent from '@material-ui/core/CardContent';
+import CardActions from '@material-ui/core/CardActions';
+import Collapse from '@material-ui/core/Collapse';
 import Dialog from '@material-ui/core/Dialog';
 import FilledInput from '@material-ui/core/FilledInput';
 import Slide from '@material-ui/core/Slide';
@@ -50,7 +57,6 @@ import Stepper from '@material-ui/core/Stepper';
 import Step from '@material-ui/core/Step';
 import StepLabel from '@material-ui/core/StepLabel';
 import {
-  Collapse,
   Navbar,
   NavbarToggler,
   NavbarBrand,
@@ -391,7 +397,6 @@ const Article = ({match}) => {
     //  await fetchSuggestedArticles();
      await fetchDescription();
     setLoaded(true);
-
   },[preferredLanguage]);
 
   const toggle = async () => {
@@ -1041,9 +1046,10 @@ const Article = ({match}) => {
                   }
                   </h4>
               <Divider style={{width:"100%", marginLeft:0, marginBottom:5}} variant="middle" />
-              <p>{section.content? <>{section.content}</>:
+              {section.content? <>  <div dangerouslySetInnerHTML={{ __html: section.content}}></div> </>:
               sectionid != sectionCID ?
               <>
+             
               
               <span onClick={() => setSCID(section._id)} style={{cursor:"pointer"}}>
                 Write in this section.
@@ -1051,7 +1057,8 @@ const Article = ({match}) => {
               </>
               :
               <>
-            <TextField
+              <WigEditor sectionContent={sectionContent} setSC={setSC} />
+            {/* <TextField
                         style={{width:"100%"}}
                         id="filled-multiline-flexible"
                         label="Section content"
@@ -1063,15 +1070,15 @@ const Article = ({match}) => {
                         margin="normal"
                         helperText="hello"
                         variant="filled"
-              />
+              /> */}
          <IconButton onClick={() => { updateSectionContent(section._id) }}  aria-label="update">
           <i class="material-icons">
                 save
           </i>
         </IconButton>
               </> 
-            }</p>
-                </>
+            }
+             </>
                 )
               })}
 
