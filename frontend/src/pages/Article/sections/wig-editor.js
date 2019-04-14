@@ -338,7 +338,7 @@ const WigEditor = ({sectionContent, setSC}) => {
               <button class="tool fas fa-paste"></button>
             </div>
             <div  dangerouslySetInnerHTML={{__html: sectionContent}} onBlur={(e) =>{ console.log(e.target.innerHTML); setSC(e.target.innerHTML) }} onInput={(e) =>{ console.log(e.target.innerHTML); setSC(e.target.innerHTML) }} contentEditable={cEditable} className={classes.textField} id="editable-area">
-
+              
             </div>
             <Dialog open={linkModal} onClose={setLinkModal} aria-labelledby="form-dialog-title">
         <DialogTitle id="form-dialog-title">Add a link</DialogTitle>

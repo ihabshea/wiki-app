@@ -823,7 +823,7 @@ const Article = ({ match }) => {
                         <div id="jb-finfo">
                           <div style={{ "clear": "right" }}></div>
                           <div>
-                            <Description authD={authD} articleId={match.params.id} editDescrition={editDescrition} setED={setED} />
+                            <Description editMode={editMode} authD={authD} articleId={match.params.id} editDescrition={editDescrition} setED={setED} />
 
                             <List style={{width:"35%"}} component="nav" className={classes.root}>
                               {sections.map(section => {

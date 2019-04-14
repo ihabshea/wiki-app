@@ -756,10 +756,10 @@ updateDescription: async(args, req) => {
   }
 
   const description = await Description.findOne({article: article._id, language:fLanguage._id}).exec();
-  description.text = descriptionInput.text;
-  await desciption.save();
+  description.text = args.descriptionInput.text;
+  await description.save();
 
-  return desciption;
+  return description;
 }
 };
 //Bind users to related queries

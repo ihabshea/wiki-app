@@ -3,14 +3,16 @@ import React, { useReducer, useContext, useState, useEffect } from 'react';
 import WigEditor from './sections/wig-editor'
 import IconButton from '@material-ui/core/IconButton';
 import useEffectAsync from '../../helpers/useEffectAsync';
-const Description = ({ articleId, editDescrition, setED, authD, LangContext }) => {
+const Description = ({ articleId, editDescrition, editMode, setED, authD }) => {
     const preferredLanguage = localStorage.getItem("language");
-    const [description, setDescription] = useState({ text: null }); 
+    const [description, setDescription] = useState({ text: null });
     const [currentDescription, setCD] = useState('');
+    const [edittedDescription, setEED] = useState('');
     const [loaded, setLoaded] = useState(false);
     useEffectAsync(async () => {
         await fetchDescription();
-    },[]);
+        setLoaded(true);
+    }, []);
     const createDescription = async (e) => {
         e.preventDefault();
         setLoaded(false);
@@ -42,6 +44,7 @@ const Description = ({ articleId, editDescrition, setED, authD, LangContext }) =
             }).then(resData => {
                 console.log(resData.data.description);
                 setDescription(resData.data.description);
+                setEED(resData.data.description.text);
             }).catch(err => {
                 throw (err);
             })
@@ -54,13 +57,13 @@ const Description = ({ articleId, editDescrition, setED, authD, LangContext }) =
     }
     const fetchDescription = async () => {
         let raw;
-    
+
         let lpreferredLanguage = localStorage.getItem("language");
-    
+
         console.log(lpreferredLanguage, articleId);
         const requestBody = {
-    
-          query: `
+
+            query: `
           query{
             description(articleID:"${articleId}", language:"${lpreferredLanguage}"){
               text
@@ -69,31 +72,32 @@ const Description = ({ articleId, editDescrition, setED, authD, LangContext }) =
         `
         };
         await fetch('http://localhost:9000/graphql',
-    
-          {
-            method: 'POST',
-            body: JSON.stringify(requestBody),
-            headers: {
-              'Content-Type': 'application/json'
+
+            {
+                method: 'POST',
+                body: JSON.stringify(requestBody),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
             }
-          }
         )
-          .then(res => {
-            if (res.status !== 200 && res.status !== 201) {
-              throw new Error('failed');
-            }
-            return res.json();
-          }).then(resData => {
-            console.log(resData);
-            if (resData.data.description) {
-              setDescription(resData.data.description);
-            } else {
-              setDescription({ text: null });
-            }
-          }).catch(err => {
-            throw (err);
-          })
-      }
+            .then(res => {
+                if (res.status !== 200 && res.status !== 201) {
+                    throw new Error('failed');
+                }
+                return res.json();
+            }).then(resData => {
+                console.log(resData);
+                if (resData.data.description) {
+                    setDescription(resData.data.description);
+                    setEED(resData.data.description.text);
+                } else {
+                    setDescription({ text: null });
+                }
+            }).catch(err => {
+                throw (err);
+            })
+    }
     const updateDescription = async (e) => {
         e.preventDefault();
         setLoaded(false);
@@ -101,7 +105,7 @@ const Description = ({ articleId, editDescrition, setED, authD, LangContext }) =
 
             query: `
          mutation {
-           updateDescription(descriptionInput:{articleId:"${articleId}", text: "${currentDescription}", language: "${preferredLanguage}"}){
+           updateDescription(descriptionInput:{articleId:"${articleId}", text: """${edittedDescription}""", language: "${preferredLanguage}"}){
              text
            }
          }`
@@ -164,10 +168,47 @@ const Description = ({ articleId, editDescrition, setED, authD, LangContext }) =
                             }
                         </>
                     }
-                    {description.text &&
-                        <div dangerouslySetInnerHTML={{ __html: description.text }}>
-                        </div>
+                    {!editMode &&
+                        <>
+                            {description.text &&
+                                <div dangerouslySetInnerHTML={{ __html: description.text }}>
+                                </div>
+                            }
+                        </>
                     }
+                    {editMode &&
+                        <>
+                            {!editDescrition &&
+                                <>
+                                    {description.text &&
+                                        <div onClick={()=> {setED(true)}}  style={{ "cursor": "pointer" }} dangerouslySetInnerHTML={{ __html: description.text }}>
+                                        </div>
+                                    }
+                                </>
+                            }
+                            {editDescrition &&
+                                <>
+                                    <WigEditor sectionContent={edittedDescription} setSC={setEED} />
+                                    <IconButton onClick={updateDescription} aria-label="update">
+                                        <i class="material-icons">
+                                            save
+                                        </i>
+                                    </IconButton>
+                                </>
+                            }
+                        </>
+
+                    }
+                </>
+            }
+            {!loaded &&
+                <>
+                    <div class="sk-folding-cube">
+                        <div class="sk-cube1 sk-cube"></div>
+                        <div class="sk-cube2 sk-cube"></div>
+                        <div class="sk-cube4 sk-cube"></div>
+                        <div class="sk-cube3 sk-cube"></div>
+                    </div>
                 </>
             }
         </>
