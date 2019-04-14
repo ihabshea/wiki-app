@@ -20,16 +20,22 @@ import FormControl from '@material-ui/core/FormControl'
 import DialogTitle from '@material-ui/core/DialogTitle';
 import useEffectAsync from '../../../helpers/useEffectAsync';
 const Section = ({ classes, authD, fetchSections, section, editMode }) => {
+
     const [sectionDeleteDialog, setSDD] = useState(false);
     const [sectionedit, setSE] = useState(null);
     const [sectionTitle, setST] = useState('');
     const [sectionContent, setSC] = useState('');
     const [title, setTitle] = useState({ text: null });
-
+    const [SCEdit, setSCE] = useState(false);
+    const [cSC, setCSC] = useState(null);
     const [sectionCID, setSCID] = useState(null);
     const [loaded, setLoaded] = useState(true);
     let lpreferredLanguage = localStorage.getItem("language");
+    let currentSection = section;
     let sectionid = section._id;
+    useEffectAsync( async() => {
+        setCSC(section.content);
+    },[]);
     const fetchSection = async () => {
         setLoaded(false);
         const requestBody = {
@@ -59,17 +65,17 @@ const Section = ({ classes, authD, fetchSections, section, editMode }) => {
                 }
                 return res.json();
             }).then(resData => {
-                section = resData.result.section;
+                currentSection = resData.data.section;
                 setLoaded(true);
             });
     }
-    const updateSectionContent = async (id) => {
+    const updateSectionContent = async () => {
         setLoaded(false);
         const requestBody = {
 
             query: `
     mutation {
-      updateSectionContent(sectionID: "${id}", content: """${sectionContent}"""){
+      updateSectionContent(sectionID: "${sectionid}", content: """${cSC}"""){
         title
       }
     }`
@@ -107,6 +113,7 @@ const Section = ({ classes, authD, fetchSections, section, editMode }) => {
         // await fetchALanguages(articleId);
         // setET(false);
         await fetchSection();
+        setSCE(false);
         setLoaded(true);
     }
 
@@ -249,7 +256,7 @@ const Section = ({ classes, authD, fetchSections, section, editMode }) => {
                                                 }}
                                             >
                                                 Section  Title
-</InputLabel>
+                                            </InputLabel>
 
                                             <Input
                                                 id="custom-css-standard-input"
@@ -273,7 +280,23 @@ const Section = ({ classes, authD, fetchSections, section, editMode }) => {
                         }
                     </h4>
                     <Divider style={{ width: "100%", marginLeft: 0, marginBottom: 5 }} variant="middle" />
-                    {section.content ? <>  <div dangerouslySetInnerHTML={{ __html: section.content }}></div> </> :
+                    {currentSection.content ? 
+                    <>  
+                    {!SCEdit &&
+                    <div style={{cursor:"pointer"}} onClick={() =>{ setSCE(true); }} dangerouslySetInnerHTML={{ __html: currentSection.content }}>
+                    </div> 
+                    }
+                    {SCEdit && 
+                    <>
+                        <WigEditor sectionContent={cSC} setSC={setCSC} />
+                        <IconButton onClick={updateSectionContent} aria-label="update">
+                                    <i class="material-icons">
+                                        save
+  </i>
+                                </IconButton>
+                    </>
+                    }
+                    </> :
                         sectionid != sectionCID ?
                             <>
 
