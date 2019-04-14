@@ -4,7 +4,8 @@ import AuthContext from '../context/auth';
 import useEffectAsync from '../helpers/useEffectAsync';
 import strings from '../language/localization';
 import LangContext from '../language/languageContext';
-import {theme, useStyles} from '../theme/theme';
+import { theme, useStyles } from '../theme/theme';
+import Description from "./Article/description"
 import { ThemeProvider } from "@material-ui/styles";
 import WigEditor from './Article/sections/wig-editor'
 import classNames from 'classnames';
@@ -66,54 +67,54 @@ import {
   UncontrolledDropdown,
   DropdownToggle,
   Alert,
-  DropdownMenu,Table,
+  DropdownMenu, Table,
   DropdownItem,
-Modal, ModalHeader, ModalBody, ModalFooter, InputGroup, InputGroupText, InputGroupAddon,
-Col, Row, Form, Container, FormGroup, Label, FormText, ListGroup, ListGroupItem, Jumbotron } from 'reactstrap';
+  Modal, ModalHeader, ModalBody, ModalFooter, InputGroup, InputGroupText, InputGroupAddon,
+  Col, Row, Form, Container, FormGroup, Label, FormText, ListGroup, ListGroupItem, Jumbotron
+} from 'reactstrap';
 import languageContext from '../language/languageContext';
 
-const Article = ({match}) => {
+const Article = ({ match }) => {
   const classes = useStyles();
   let languageexists = localStorage.getItem("language") !== "null";
   const lContext = useContext(LangContext);
-  const authD =  useContext(AuthContext);
+  const authD = useContext(AuthContext);
   const [fields, reloadFields] = useState([]);
   const [isDead, setDead] = useState(false);
   const [birthDate, setBD] = useState(null);
-  const [fieldForm, setFieldForm] = useState([{fieldname: "en",  fieldvalue:"English"}]);
-  const [preferredLanguage,setLang] = useState(null);
-  const [addField, setAddField] =  useState(false);
+  const [fieldForm, setFieldForm] = useState([{ fieldname: "en", fieldvalue: "English" }]);
+  const [preferredLanguage, setLang] = useState(null);
+  const [addField, setAddField] = useState(false);
   const [editMode, setEM] = useState(false);
   const [modal, setModal] = useState(true);
   const [sectionedit, setSE] = useState(null);
   const [EFV, setEFV] = useState('');
   const [loaded, setLoaded] = useState(false);
-  const [title, setTitle] = useState({text: null});
+  const [title, setTitle] = useState({ text: null });
   const [degree, setDG] = useState(null);
   const [institution, setIN] = useState(null);
   const [editTitle, setET] = useState(false);
   const [currentTitle, setCT] = useState('');
-  const [description, setDescription] = useState({text: null});
   const [editDescrition, setED] = useState(false);
   const [sections, retrieveSections] = useState([]);
   const [PLanguage, setPLanguage] = useState("en");
   const [activeStep, setActiveStep] = useState(0);
   const [open, setOpen] = React.useState(false);
-  const [currentDescription, setCD] = useState('');
+
   const [wizardDialog, setWZD] = useState(false);
-  const [sectionTitle,  setST] =  useState('');
-  const [sectionDeleteDialog, setSDD] = useState(false); 
+  const [sectionTitle, setST] = useState('');
+  const [sectionDeleteDialog, setSDD] = useState(false);
   const [sectionContent, setSC] = useState('');
   const [sectionCID, setSCID] = useState(null);
 
-  const [languages, setLanguages] = useState([{shorthand: "en",  name:"English"}]);
-  const [alanguages, setALanguages] = useState([{shorthand: "en",  name:"English"}]);
+  const [languages, setLanguages] = useState([{ shorthand: "en", name: "English" }]);
+  const [alanguages, setALanguages] = useState([{ shorthand: "en", name: "English" }]);
 
   let lpreferredLanguage = localStorage.getItem("language");
   const Transition = (props) => {
     return <Slide direction="up" {...props} />;
   }
-  
+
   function NoOptionsMessage(props) {
     return (
       <Typography
@@ -125,11 +126,11 @@ const Article = ({match}) => {
       </Typography>
     );
   }
-  
+
   function inputComponent({ inputRef, ...props }) {
     return <div ref={inputRef} {...props} />;
   }
-  
+
   function Control(props) {
     return (
       <TextField
@@ -147,7 +148,7 @@ const Article = ({match}) => {
       />
     );
   }
-  
+
   function Option(props) {
     return (
       <MenuItem
@@ -163,7 +164,7 @@ const Article = ({match}) => {
       </MenuItem>
     );
   }
-  
+
   function Placeholder(props) {
     return (
       <Typography
@@ -175,7 +176,7 @@ const Article = ({match}) => {
       </Typography>
     );
   }
-  
+
   function SingleValue(props) {
     return (
       <Typography className={props.selectProps.classes.singleValue} {...props.innerProps}>
@@ -190,7 +191,7 @@ const Article = ({match}) => {
       </Paper>
     );
   }
-  
+
   function ValueContainer(props) {
     return <div className={props.selectProps.classes.valueContainer}>{props.children}</div>;
   }
@@ -203,341 +204,219 @@ const Article = ({match}) => {
     SingleValue,
     ValueContainer,
   };
-  
+
   //
- 
-  const fetchLanguages = async() => {
+
+  const fetchLanguages = async () => {
     let raw;
     const requestBody = {
 
-    query : `
+      query: `
     query {
       languages{
         shorthand
         name
       }
     }`
-  };
-  try{
-    await fetch('http://localhost:9000/graphql',
+    };
+    try {
+      await fetch('http://localhost:9000/graphql',
 
-    {
-      method: 'POST',
-      body: JSON.stringify(requestBody),
-      headers: {
-        'Content-Type': 'application/json'
-      }
+        {
+          method: 'POST',
+          body: JSON.stringify(requestBody),
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+        .then(res => {
+          if (res.status !== 200 && res.status !== 201) {
+            throw new Error('failed');
+          }
+          return res.json();
+        }).then(resData => {
+          console.log(resData.data.languages);
+          setLanguages(resData.data.languages);
+        }).catch(err => {
+          throw (err);
+        })
+    } catch (e) {
+      // throw  new Error("t");
     }
-  )
-  .then( res => {
-      if(res.status !== 200 && res.status !== 201){
-        throw new Error('failed');
-      }
-  return res.json();
-  }).then(resData => {
-    console.log(resData.data.languages);
-    setLanguages(resData.data.languages);
-  }).catch(err => {
-    throw(err);
-  })
-}catch(e){
-  // throw  new Error("t");
-}
   }
-  const fetchALanguages = async({articleId}) => {
+  const fetchALanguages = async ({ articleId }) => {
     let raw;
     const requestBody = {
 
-    query : `
+      query: `
     query {
       alanguages(aid: "${match.params.id}"){
         shorthand
         name
       }
     }`
-  };
+    };
     await fetch('http://localhost:9000/graphql',
 
-    {
-      method: 'POST',
-      body: JSON.stringify(requestBody),
-      headers: {
-        'Content-Type': 'application/json'
+      {
+        method: 'POST',
+        body: JSON.stringify(requestBody),
+        headers: {
+          'Content-Type': 'application/json'
+        }
       }
-    }
-  )
-  .then( res => {
-      if(res.status !== 200 && res.status !== 201){
-        throw new Error('failed');
-      }
-  return res.json();
-  }).then(resData => {
-    console.log(resData.data.alanguages);
-    if(resData.data){
-     setALanguages(resData.data.alanguages);
-    }
-  }).catch(err => {
-    throw(err);
-  })
+    )
+      .then(res => {
+        if (res.status !== 200 && res.status !== 201) {
+          throw new Error('failed');
+        }
+        return res.json();
+      }).then(resData => {
+        console.log(resData.data.alanguages);
+        if (resData.data) {
+          setALanguages(resData.data.alanguages);
+        }
+      }).catch(err => {
+        throw (err);
+      })
   }
 
 
-  const fetchTitle = async() => {
+  const fetchTitle = async () => {
     let raw;
 
 
-   console.log(lpreferredLanguage,match.params.id);
+    console.log(lpreferredLanguage, match.params.id);
     const requestBody = {
 
-    query : `
+      query: `
       query{
         title(articleID:"${match.params.id}", language:"${lpreferredLanguage}"){
           text
         }
       }
     `
-  };
+    };
     await fetch('http://localhost:9000/graphql',
 
-    {
-      method: 'POST',
-      body: JSON.stringify(requestBody),
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    }
-  )
-  .then( res => {
-      if(res.status !== 200 && res.status !== 201){
-        throw new Error('failed');
-      }
-  return res.json();
-  }).then(resData => {
-    console.log(resData);
-    if(resData.data.title){
-      setTitle(resData.data.title);
-    }else{
-      setTitle({text: null});
-    }
-  }).catch(err => {
-    throw(err);
-  })
-  }
-  
-  const fetchDescription = async() => {
-    let raw;
-
-   let lpreferredLanguage = localStorage.getItem("language");
-   
-   console.log(lpreferredLanguage,match.params.id);
-    const requestBody = {
-
-    query : `
-      query{
-        description(articleID:"${match.params.id}", language:"${lpreferredLanguage}"){
-          text
+      {
+        method: 'POST',
+        body: JSON.stringify(requestBody),
+        headers: {
+          'Content-Type': 'application/json'
         }
       }
-    `
-  };
-    await fetch('http://localhost:9000/graphql',
-
-    {
-      method: 'POST',
-      body: JSON.stringify(requestBody),
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    }
-  )
-  .then( res => {
-      if(res.status !== 200 && res.status !== 201){
-        throw new Error('failed');
-      }
-  return res.json();
-  }).then(resData => {
-    console.log(resData);
-    if(resData.data.description){
-      setDescription(resData.data.description);
-    }else{
-      setDescription({text: null});
-    }
-  }).catch(err => {
-    throw(err);
-  })
+    )
+      .then(res => {
+        if (res.status !== 200 && res.status !== 201) {
+          throw new Error('failed');
+        }
+        return res.json();
+      }).then(resData => {
+        console.log(resData);
+        if (resData.data.title) {
+          setTitle(resData.data.title);
+        } else {
+          setTitle({ text: null });
+        }
+      }).catch(err => {
+        throw (err);
+      })
   }
-  useEffectAsync(async ()=> {
-    if(!preferredLanguage && localStorage.getItem("language")){
-      await setLang(localStorage.getItem("language"));
-      await lContext.changeLanguage(localStorage.getItem("language"));
-      // console.log(strings.untitled);
-    }
-    if(localStorage.getItem("language")){
-      await lContext.changeLanguage(localStorage.getItem("language"));
-      await setLang(localStorage.getItem("language"));
-      // console.log(strings.untitled);
-    }
-  },[])
+
+  
   useEffectAsync(async () => {
-     await  fetchLanguages();
-     await fetchALanguages(match.params.id);
-     await fetchTitle();
+    if (!preferredLanguage && localStorage.getItem("language")) {
+      await setLang(localStorage.getItem("language"));
+      await lContext.changeLanguage(localStorage.getItem("language"));
+      // console.log(strings.untitled);
+    }
+    if (localStorage.getItem("language")) {
+      await lContext.changeLanguage(localStorage.getItem("language"));
+      await setLang(localStorage.getItem("language"));
+      // console.log(strings.untitled);
+    }
+  }, [])
+  useEffectAsync(async () => {
+    await fetchLanguages();
+    await fetchALanguages(match.params.id);
+    await fetchTitle();
     //  await fetchSuggestedArticles();
-     await fetchSections();
+    await fetchSections();
     //  await fetchFields();
-     await fetchDescription();
     setLoaded(true);
-  },[]);
-  useEffectAsync(async() => {
+  }, []);
+  useEffectAsync(async () => {
     setLoaded(false);
-     await lContext.changeLanguage(localStorage.getItem("language"));
-     await fetchTitle();
+    await lContext.changeLanguage(localStorage.getItem("language"));
+    await fetchTitle();
     //  await fetchFields();
-     await fetchSections();
+    await fetchSections();
     //  await fetchSuggestedArticles();
-     await fetchDescription();
+    // await fetchDescription();
     setLoaded(true);
-  },[preferredLanguage]);
+  }, [preferredLanguage]);
 
   const toggle = async () => {
     setLang("en");
     // localStorage.setItem("language","en");
     await lContext.changeLanguage("en");
-     setModal(!modal);
-   }
+    setModal(!modal);
+  }
 
-   const createDescription = async (e) => {
-     e.preventDefault();
-     setLoaded(false);
-     const requestBody = {
+  
+  
+  const createTitle = async (e) => {
+    e.preventDefault();
+    setLoaded(false);
+    const requestBody = {
 
-     query : `
-     mutation {
-       createDescription(descriptionInput:{articleId:"${match.params.id}", text: """${currentDescription}""", language: "${preferredLanguage}"}){
-         text
-       }
-     }`
-     };
-     await fetch('http://localhost:9000/graphql',
-
-     {
-       method: 'POST',
-       body: JSON.stringify(requestBody),
-       headers: {
-         'Content-Type': 'application/json',
-         'Authorization': 'Bearer '+ authD.token
-       }
-     }
-     )
-     .then( res => {
-       if(res.status !== 200 && res.status !== 201){
-         throw new Error('failed');
-       }
-     return res.json();
-     }).then(resData => {
-     console.log(resData.data.description);
-     setDescription(resData.data.description);
-     }).catch(err => {
-     throw(err);
-     })
-
-     setED(false);
-     await fetchDescription();
-     await fetchALanguages(match.params.id);
-     setLoaded(true);
-
-   }
-   const updateDescription = async (e) => {
-     e.preventDefault();
-     setLoaded(false);
-     const requestBody = {
-
-     query : `
-     mutation {
-       updateDescription(descriptionInput:{articleId:"${match.params.id}", text: "${currentDescription}", language: "${preferredLanguage}"}){
-         text
-       }
-     }`
-     };
-     await fetch('http://localhost:9000/graphql',
-
-     {
-       method: 'POST',
-       body: JSON.stringify(requestBody),
-       headers: {
-         'Content-Type': 'application/json',
-         'Authorization': 'Bearer '+ authD.token
-       }
-     }
-     )
-     .then( res => {
-       if(res.status !== 200 && res.status !== 201){
-         throw new Error('failed');
-       }
-     return res.json();
-     }).then(resData => {
-     console.log(resData.data.description);
-     setDescription(resData.data.description);
-     }).catch(err => {
-     throw(err);
-     })
-
-     setED(false);
-     await fetchDescription();
-     setLoaded(true);
-
-   }
-   
-   const createTitle = async (e) => {
-     e.preventDefault();
-     setLoaded(false);
-     const requestBody = {
-
-     query : `
+      query: `
      mutation {
        createTitle(titleInpt:{articleId:"${match.params.id}", title: "${currentTitle}", language: "${preferredLanguage}"}){
          text
        }
      }`
-     };
-     await fetch('http://localhost:9000/graphql',
+    };
+    await fetch('http://localhost:9000/graphql',
 
-     {
-       method: 'POST',
-       body: JSON.stringify(requestBody),
-       headers: {
-         'Content-Type': 'application/json',
-         'Authorization': 'Bearer '+ authD.token
-       }
-     }
-     )
-     .then( res => {
-       if(res.status !== 200 && res.status !== 201){
-         throw new Error('failed');
-       }
-     return res.json();
-     }).then(resData => {
-     console.log(resData.data.title);
-     if(resData.data.title){
-       setTitle(resData.data.title);
-     }else{
-       setTitle({text: null});
-     }
-     }).catch(err => {
-     throw(err);
-     })
-     await fetchTitle();
-     
-     await fetchALanguages(match.params.id);
-     setET(false);
-     setLoaded(true);
-   }
-   const createSection = async (e) => {
+      {
+        method: 'POST',
+        body: JSON.stringify(requestBody),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + authD.token
+        }
+      }
+    )
+      .then(res => {
+        if (res.status !== 200 && res.status !== 201) {
+          throw new Error('failed');
+        }
+        return res.json();
+      }).then(resData => {
+        console.log(resData.data.title);
+        if (resData.data.title) {
+          setTitle(resData.data.title);
+        } else {
+          setTitle({ text: null });
+        }
+      }).catch(err => {
+        throw (err);
+      })
+    await fetchTitle();
+
+    await fetchALanguages(match.params.id);
+    setET(false);
+    setLoaded(true);
+  }
+  const createSection = async (e) => {
     e.preventDefault();
     setLoaded(false);
     const requestBody = {
 
-    query : `
+      query: `
     mutation {
       createSection(articleID:"${match.params.id}", language: "${lpreferredLanguage}"){
         _id
@@ -546,49 +425,49 @@ const Article = ({match}) => {
     };
     await fetch('http://localhost:9000/graphql',
 
-    {
-      method: 'POST',
-      body: JSON.stringify(requestBody),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer '+ authD.token
+      {
+        method: 'POST',
+        body: JSON.stringify(requestBody),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + authD.token
+        }
       }
-    }
     )
-    .then( res => {
-      if(res.status !== 200 && res.status !== 201){
-        throw new Error('failed');
-      }
-    return res.json();
-    }).then(resData => {
-      console.log("");
-    }).catch(err => {
-    throw(err);
-    })
+      .then(res => {
+        if (res.status !== 200 && res.status !== 201) {
+          throw new Error('failed');
+        }
+        return res.json();
+      }).then(resData => {
+        console.log("");
+      }).catch(err => {
+        throw (err);
+      })
     await fetchTitle();
     await fetchSections();
     setET(false);
     setLoaded(true);
   }
-   const changeSValue = async (value) => {
+  const changeSValue = async (value) => {
     // setModal(true);
     //  setLang(e.target.value);
     setPLanguage(value);
     await lContext.changeLanguage(value.value);
-    
-  /*  setPLanguage(value.value);
-    setOpen(true);
-     await lContext.changeLanguage(value.value); */
-   }
 
-   const rtlLanguage =( lpreferredLanguage === "ar" ||lpreferredLanguage === "he");
-    
-   
-  const fetchSections = async() => {
+    /*  setPLanguage(value.value);
+      setOpen(true);
+       await lContext.changeLanguage(value.value); */
+  }
+
+  const rtlLanguage = (lpreferredLanguage === "ar" || lpreferredLanguage === "he");
+
+
+  const fetchSections = async () => {
     setLoaded(false);
     const requestBody = {
 
-    query : `
+      query: `
     query {
       sections(articleID: "${match.params.id}", language: "${lpreferredLanguage}"){
         _id
@@ -599,34 +478,34 @@ const Article = ({match}) => {
     };
     await fetch('http://localhost:9000/graphql',
 
-    {
-      method: 'POST',
-      body: JSON.stringify(requestBody),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer '+ authD.token
+      {
+        method: 'POST',
+        body: JSON.stringify(requestBody),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + authD.token
+        }
       }
-    }
     )
-    .then( res => {
-      if(res.status !== 200 && res.status !== 201){
-        throw new Error('failed');
-      }
-    return res.json();
-    }).then(resData => {
-      console.log(resData);
-      if(resData.data.sections)
-        retrieveSections(resData.data.sections);
-    }).catch(err => {
-    throw(err);
-    })
+      .then(res => {
+        if (res.status !== 200 && res.status !== 201) {
+          throw new Error('failed');
+        }
+        return res.json();
+      }).then(resData => {
+        console.log(resData);
+        if (resData.data.sections)
+          retrieveSections(resData.data.sections);
+      }).catch(err => {
+        throw (err);
+      })
 
     setLoaded(true);
   }
-  const updateSectionTitle =  async(id) => {
+  const updateSectionTitle = async (id) => {
     setLoaded(false);
     const requestBody = {
-    query : `
+      query: `
     mutation {
       updateSectionTitle(sectionID: "${id}", title: "${sectionTitle}"){
         title
@@ -634,30 +513,30 @@ const Article = ({match}) => {
     }`
     };
     await fetch('http://localhost:9000/graphql',
-    {
-      method: 'POST',
-      body: JSON.stringify(requestBody),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer '+ authD.token
+      {
+        method: 'POST',
+        body: JSON.stringify(requestBody),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + authD.token
+        }
       }
-    }
     )
-    .then( res => {
-      if(res.status !== 200 && res.status !== 201){
-        throw new Error('failed');
-      }
-    return res.json();
-    }).then(resData => {
-    console.log(resData.data.title);
-    if(resData.data.title){
-      setTitle(resData.data.title);
-    }else{
-      setTitle({text: null});
-    }
-    }).catch(err => {
-    throw(err);
-    })
+      .then(res => {
+        if (res.status !== 200 && res.status !== 201) {
+          throw new Error('failed');
+        }
+        return res.json();
+      }).then(resData => {
+        console.log(resData.data.title);
+        if (resData.data.title) {
+          setTitle(resData.data.title);
+        } else {
+          setTitle({ text: null });
+        }
+      }).catch(err => {
+        throw (err);
+      })
     await fetchTitle();
     await fetchSections();
 
@@ -666,10 +545,10 @@ const Article = ({match}) => {
     setET(false);
     setLoaded(true);
   }
-  const deleteSection = async(id) => {
+  const deleteSection = async (id) => {
     setLoaded(false);
     const requestBody = {
-    query : `
+      query: `
     mutation {
       deleteSection(sectionID: "${id}"){
         section{
@@ -680,25 +559,25 @@ const Article = ({match}) => {
     };
     await fetch('http://localhost:9000/graphql',
 
-    {
-      method: 'POST',
-      body: JSON.stringify(requestBody),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer '+ authD.token
+      {
+        method: 'POST',
+        body: JSON.stringify(requestBody),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + authD.token
+        }
       }
-    }
     )
-    .then( res => {
-      if(res.status !== 200 && res.status !== 201){
-        throw new Error('failed');
-      }
-    return res.json();
-    }).then(resData => {
-      
-    }).catch(err => {
-    throw(err);
-    })
+      .then(res => {
+        if (res.status !== 200 && res.status !== 201) {
+          throw new Error('failed');
+        }
+        return res.json();
+      }).then(resData => {
+
+      }).catch(err => {
+        throw (err);
+      })
     await fetchTitle();
     await fetchSections();
     // await fetchFields();
@@ -706,11 +585,11 @@ const Article = ({match}) => {
     setET(false);
     setLoaded(true);
   };
-  const updateSectionContent =  async(id) => {
+  const updateSectionContent = async (id) => {
     setLoaded(false);
     const requestBody = {
 
-    query : `
+      query: `
     mutation {
       updateSectionContent(sectionID: "${id}", content: """${sectionContent}"""){
         title
@@ -719,30 +598,30 @@ const Article = ({match}) => {
     };
     await fetch('http://localhost:9000/graphql',
 
-    {
-      method: 'POST',
-      body: JSON.stringify(requestBody),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer '+ authD.token
+      {
+        method: 'POST',
+        body: JSON.stringify(requestBody),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + authD.token
+        }
       }
-    }
     )
-    .then( res => {
-      if(res.status !== 200 && res.status !== 201){
-        throw new Error('failed');
-      }
-    return res.json();
-    }).then(resData => {
-    console.log(resData.data.title);
-    if(resData.data.title){
-      setTitle(resData.data.title);
-    }else{
-      setTitle({text: null});
-    }
-    }).catch(err => {
-    throw(err);
-    })
+      .then(res => {
+        if (res.status !== 200 && res.status !== 201) {
+          throw new Error('failed');
+        }
+        return res.json();
+      }).then(resData => {
+        console.log(resData.data.title);
+        if (resData.data.title) {
+          setTitle(resData.data.title);
+        } else {
+          setTitle({ text: null });
+        }
+      }).catch(err => {
+        throw (err);
+      })
     await fetchTitle();
     await fetchSections();
 
@@ -751,7 +630,7 @@ const Article = ({match}) => {
     setET(false);
     setLoaded(true);
   }
-  
+
 
 
   //  const deleteField = async (id) =>{
@@ -760,7 +639,7 @@ const Article = ({match}) => {
   //   }else{
   //     setLoaded(false);
   //     const requestBody = {
-  
+
   //     query : `
   //     mutation {
   //       deleteField(fieldID: "${id}", reason: "${fieldDeleteR}"){
@@ -769,7 +648,7 @@ const Article = ({match}) => {
   //     }`
   //     };
   //     await fetch('http://localhost:9000/graphql',
-  
+
   //     {
   //       method: 'POST',
   //       body: JSON.stringify(requestBody),
@@ -795,270 +674,268 @@ const Article = ({match}) => {
   //     setLoaded(true);
   //     deletetoggle();
   //   }
-    
+
   //   console.log(id);
   //  }
- 
+
 
   let supportedLanguages = languages.map(language => ({
     value: language.shorthand,
     label: language.name
   }))
-    return (
+  return (
     <LangContext.Consumer>
       {lContext => {
         return (
-        <div style={{marginTop:30}}>
-          <Grid container spacing={18}>
+          <div style={{ marginTop: 30 }}>
+            <Grid container spacing={18}>
 
-      <Grid item xs={4}>
-        <ExpansionPanel defaultExpanded>
-        <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
-          <div className={classes.column}>
-            <Typography className={classes.heading}>
-            {title.text &&
-              <>{title.text}</>
-            }
-            {!title.text &&
-              <>{strings.untitledarticle}</>
-            }
-            </Typography>
-          </div>
-        </ExpansionPanelSummary>
-        <InfoBox 
-         classes={classes} editMode={editMode}
-         authD={authD} title={title} setTitle={setTitle} 
-         fetchTitle={fetchTitle} 
-         articleId={match.params.id} preferredLanguage={preferredLanguage}
-         lpreferredLanguage={lpreferredLanguage} components={components}
-        />
-     
-        </ExpansionPanel>
+              <Grid item xs={4}>
+                <ExpansionPanel defaultExpanded>
+                  <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
+                    <div className={classes.column}>
+                      <Typography className={classes.heading}>
+                        {title.text &&
+                          <>{title.text}</>
+                        }
+                        {!title.text &&
+                          <>{strings.untitledarticle}</>
+                        }
+                      </Typography>
+                    </div>
+                  </ExpansionPanelSummary>
+                  <InfoBox
+                    classes={classes} editMode={editMode}
+                    authD={authD} title={title} setTitle={setTitle}
+                    fetchTitle={fetchTitle}
+                    articleId={match.params.id} preferredLanguage={preferredLanguage}
+                    lpreferredLanguage={lpreferredLanguage} components={components}
+                  />
 
-        <ExpansionPanel defaultExpanded>
-        <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
-            {strings.languages} 
-        </ExpansionPanelSummary>
-        <ExpansionPanelDetails className={classes.details}>
-          {alanguages.map(language => {
-            return(
-              <ListItemText primary={language.name} style={{"margin":"0px !important", "padding:": "0px  !important"}} onClick={async () => {setLang(language.shorthand); await lContext.changeLanguage(language.shorthand);  }} />
-            )
-        })}
-         {editMode && 
-          <Button
-          outline
-          variant="extended"
-          size="small"
-          color="primary"
-          aria-label="Add"
-          className={classes.margin}
-          onClick={() => setAddField(true)} style={{marginTop:5}}
-          outline color="secondary">Add a new language</Button>
-         }
-        </ExpansionPanelDetails>
-          </ExpansionPanel>
-        
+                </ExpansionPanel>
 
-        </Grid>
-        <Col xs="8">
-        {!languageexists && 
-        <>
-      <Dialog
-        open="true"
-        TransitionComponent={Transition}
-        keepMounted
-        onClose={toggle}
-        aria-labelledby="alert-dialog-slide-title"
-        aria-describedby="alert-dialog-slide-description"
-      >
-        <DialogTitle id="alert-dialog-slide-title">{"Use Google's location service?"}</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-slide-description">
-          <Form >
-          <p>Select a language. Cancelling sets the language to English by default.</p>
-          <span>WikiMVC allows articles to be written in multiple languages; pick the language you want to write your articles in. P.S: you can change the settings later.</span> <br/>
-          {loaded && 
-          <> 
-             <Select
-          classes={classes}
-          options={supportedLanguages}
-          components={components}
-          value={PLanguage}
-          onChange={changeSValue}
-        /> 
-          </>
-          } 
-          </Form>
-
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={toggle} color="primary">
-            Disagree
-          </Button>
-          <Button onClick={toggle} color="primary">
-            Agree
-          </Button>
-        </DialogActions>
-      </Dialog>
-        </>
-        }
-        <div className="card">
-          <div className="card-body">
-          {loaded && 
-          <>
-            {!editMode && 
-              <Button onClick={() => setEM(true)} style={{float:"right"}} outline color="primary">{strings.editmode}</Button>
-            }
-            {editMode && 
-              <Button onClick={() => setEM(false)} style={{float:"right"}} outline color="primary">{strings.done}</Button>
-            }
-              <Button style={{float:"right"}} outline color="primary">Edit History</Button>
-
-            {!title.text &&
-              <>
-              {!editTitle &&
-              <>
-              <h3 onClick={() => setET(true)}>
-              {strings.setTitle}
-              </h3>
-              </>
-              }
-              {editTitle &&
-                <form onSubmit={createTitle}>
-                  <input type="text" onChange={(e) => setCT(e.target.value)} value={currentTitle} placeholder="Set a title for the article" />
-                </form>
-              }
-              </>
-            }
-            {title.text &&
-              <h3>{title.text}</h3>
-            }
-
-            <div className="jb-info">
+                <ExpansionPanel defaultExpanded>
+                  <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
+                    {strings.languages}
+                  </ExpansionPanelSummary>
+                  <ExpansionPanelDetails className={classes.details}>
+                    {alanguages.map(language => {
+                      return (
+                        <ListItemText primary={language.name} style={{ "margin": "0px !important", "padding:": "0px  !important" }} onClick={async () => { setLang(language.shorthand); await lContext.changeLanguage(language.shorthand); }} />
+                      )
+                    })}
+                    {editMode &&
+                      <Button
+                        outline
+                        variant="extended"
+                        size="small"
+                        color="primary"
+                        aria-label="Add"
+                        className={classes.margin}
+                        onClick={() => setAddField(true)} style={{ marginTop: 5 }}
+                        outline color="secondary">Add a new language</Button>
+                    }
+                  </ExpansionPanelDetails>
+                </ExpansionPanel>
 
 
-                          <div style={{"clear":"left"}}></div>
-            </div>
-            <div id="jb-finfo">
-              <div style={{"clear":"right"}}></div>
-              <div>
-              {!description.text &&
-                <>
-                {!editDescrition &&
-                <>
-                <p onClick={() => setED(true)}>
-                  Set a description for the article
-                </p>
-                </>
-                }
-                {editDescrition &&
-                  <form onSubmit={createDescription}>
-                  <textarea onChange={(e) => setCD(e.target.value)} value={currentDescription}  />
-                  <input type="submit" />
-                  </form>
-                }
-                </>
-              }
-              {description.text &&
-                <p>{description.text}</p>
-              }
-        
-              {sections.map(section => {
-                let sectionid = section._id;
-                return(
-                <>
-                  <h4 style={{marginBottom:0}}>
-                  {section.title? 
+              </Grid>
+              <Col xs="8">
+                {!languageexists &&
                   <>
-                  {section.title}
-                  
-                  {editMode &&
-                    <>
-         <IconButton onClick={() => setSDD(!sectionDeleteDialog)}  aria-label="Delete">
-          <i class="material-icons">
-                delete
+                    <Dialog
+                      open="true"
+                      TransitionComponent={Transition}
+                      keepMounted
+                      onClose={toggle}
+                      aria-labelledby="alert-dialog-slide-title"
+                      aria-describedby="alert-dialog-slide-description"
+                    >
+                      <DialogTitle id="alert-dialog-slide-title">{"Use Google's location service?"}</DialogTitle>
+                      <DialogContent>
+                        <DialogContentText id="alert-dialog-slide-description">
+                          <Form >
+                            <p>Select a language. Cancelling sets the language to English by default.</p>
+                            <span>WikiMVC allows articles to be written in multiple languages; pick the language you want to write your articles in. P.S: you can change the settings later.</span> <br />
+                            {loaded &&
+                              <>
+                                <Select
+                                  classes={classes}
+                                  options={supportedLanguages}
+                                  components={components}
+                                  value={PLanguage}
+                                  onChange={changeSValue}
+                                />
+                              </>
+                            }
+                          </Form>
+
+                        </DialogContentText>
+                      </DialogContent>
+                      <DialogActions>
+                        <Button onClick={toggle} color="primary">
+                          Disagree
+          </Button>
+                        <Button onClick={toggle} color="primary">
+                          Agree
+          </Button>
+                      </DialogActions>
+                    </Dialog>
+                  </>
+                }
+                <div className="card">
+                  <div className="card-body">
+                    {loaded &&
+                      <>
+                        {!editMode &&
+                          <Button onClick={() => setEM(true)} style={{ float: "right" }} outline color="primary">{strings.editmode}</Button>
+                        }
+                        {editMode &&
+                          <Button onClick={() => setEM(false)} style={{ float: "right" }} outline color="primary">{strings.done}</Button>
+                        }
+                        <Button style={{ float: "right" }} outline color="primary">Edit History</Button>
+
+                        {!title.text &&
+                          <>
+                            {!editTitle &&
+                              <>
+                                <h3 onClick={() => setET(true)}>
+                                  {strings.setTitle}
+                                </h3>
+                              </>
+                            }
+                            {editTitle &&
+                              <form onSubmit={createTitle}>
+                                <input type="text" onChange={(e) => setCT(e.target.value)} value={currentTitle} placeholder="Set a title for the article" />
+                              </form>
+                            }
+                          </>
+                        }
+                        {title.text &&
+                          <h3>{title.text}</h3>
+                        }
+
+                        <div className="jb-info">
+
+
+                          <div style={{ "clear": "left" }}></div>
+                        </div>
+                        <div id="jb-finfo">
+                          <div style={{ "clear": "right" }}></div>
+                          <div>
+                            <Description authD={authD} articleId={match.params.id} editDescrition={editDescrition} setED={setED} />
+
+                            <List style={{width:"35%"}} component="nav" className={classes.root}>
+                              {sections.map(section => {
+                                return (
+
+                                  <ListItem button>
+
+                                    <ListItemText inset primary={
+                                      section.title ? section.title : "Untitled section"
+                                    } />
+                                  </ListItem>
+
+
+
+                                )
+                              
+                              })}
+                            </List>
+                            {sections.map(section => {
+                                let sectionid = section._id;
+                                return (
+                                  <>
+                                    <h4 style={{ marginBottom: 0 }}>
+                                      {section.title ?
+                                        <>
+                                          {section.title}
+
+                                          {editMode &&
+                                            <>
+                                              <IconButton onClick={() => setSDD(!sectionDeleteDialog)} aria-label="Delete">
+                                                <i class="material-icons">
+                                                  delete
           </i>
-        </IconButton>
-       <Dialog
-        open={sectionDeleteDialog}
-        onClose={() => setSDD(!sectionDeleteDialog)}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">{"Delete section"}</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Are you sure?
+                                              </IconButton>
+                                              <Dialog
+                                                open={sectionDeleteDialog}
+                                                onClose={() => setSDD(!sectionDeleteDialog)}
+                                                aria-labelledby="alert-dialog-title"
+                                                aria-describedby="alert-dialog-description"
+                                              >
+                                                <DialogTitle id="alert-dialog-title">{"Delete section"}</DialogTitle>
+                                                <DialogContent>
+                                                  <DialogContentText id="alert-dialog-description">
+                                                    Are you sure?
           </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setSDD(!sectionDeleteDialog)} color="primary">
-            No
+                                                </DialogContent>
+                                                <DialogActions>
+                                                  <Button onClick={() => setSDD(!sectionDeleteDialog)} color="primary">
+                                                    No
           </Button>
-          <Button onClick={() => deleteSection(section._id)} color="primary" autoFocus>
-            Yes
+                                                  <Button onClick={() => deleteSection(section._id)} color="primary" autoFocus>
+                                                    Yes
           </Button>
-        </DialogActions>
-      </Dialog>
-                    </>
-                  }
-                  </>: 
-                
-                  <>
-                  {sectionid != sectionedit ?
-                    <span onClick={() => setSE(sectionid)} style={{cursor:"pointer"}}>
-                    Untitled Section
+                                                </DialogActions>
+                                              </Dialog>
+                                            </>
+                                          }
+                                        </> :
+
+                                        <>
+                                          {sectionid != sectionedit ?
+                                            <span onClick={() => setSE(sectionid)} style={{ cursor: "pointer" }}>
+                                              Untitled Section
                     </span>
-                  :
-                  <>
-                    <FormControl className={classes.margin}>
-        <InputLabel
-          htmlFor="custom-css-standard-input"
-          classes={{
-            root: classes.cssLabel,
-            focused: classes.cssFocused,
-          }}
-        >
-          Section  Title
+                                            :
+                                            <>
+                                              <FormControl className={classes.margin}>
+                                                <InputLabel
+                                                  htmlFor="custom-css-standard-input"
+                                                  classes={{
+                                                    root: classes.cssLabel,
+                                                    focused: classes.cssFocused,
+                                                  }}
+                                                >
+                                                  Section  Title
         </InputLabel>
-        
-        <Input
-          id="custom-css-standard-input"
-          value={sectionTitle}  
-          onChange={(e) => setST(e.target.value)}
-          classes={{
-            underline: classes.cssUnderline,
-          }}
-        />
-        <IconButton onClick={() => { updateSectionTitle(section._id) }}  aria-label="update">
-          <i class="material-icons">
-                save
+
+                                                <Input
+                                                  id="custom-css-standard-input"
+                                                  value={sectionTitle}
+                                                  onChange={(e) => setST(e.target.value)}
+                                                  classes={{
+                                                    underline: classes.cssUnderline,
+                                                  }}
+                                                />
+                                                <IconButton onClick={() => { updateSectionTitle(section._id) }} aria-label="update">
+                                                  <i class="material-icons">
+                                                    save
           </i>
-        </IconButton>
-      </FormControl>
-                  </>
-                  }
-                  
-                  </>
-                  
-                  }
-                  </h4>
-              <Divider style={{width:"100%", marginLeft:0, marginBottom:5}} variant="middle" />
-              {section.content? <>  <div dangerouslySetInnerHTML={{ __html: section.content}}></div> </>:
-              sectionid != sectionCID ?
-              <>
-             
-              
-              <span onClick={() => setSCID(section._id)} style={{cursor:"pointer"}}>
-                Write in this section.
+                                                </IconButton>
+                                              </FormControl>
+                                            </>
+                                          }
+
+                                        </>
+
+                                      }
+                                    </h4>
+                                    <Divider style={{ width: "100%", marginLeft: 0, marginBottom: 5 }} variant="middle" />
+                                    {section.content ? <>  <div dangerouslySetInnerHTML={{ __html: section.content }}></div> </> :
+                                      sectionid != sectionCID ?
+                                        <>
+
+
+                                          <span onClick={() => setSCID(section._id)} style={{ cursor: "pointer" }}>
+                                            Write in this section.
               </span>
-              </>
-              :
-              <>
-              <WigEditor sectionContent={sectionContent} setSC={setSC} />
-            {/* <TextField
+                                        </>
+                                        :
+                                        <>
+                                          <WigEditor sectionContent={sectionContent} setSC={setSC} />
+                                          {/* <TextField
                         style={{width:"100%"}}
                         id="filled-multiline-flexible"
                         label="Section content"
@@ -1071,56 +948,56 @@ const Article = ({match}) => {
                         helperText="hello"
                         variant="filled"
               /> */}
-         <IconButton onClick={() => { updateSectionContent(section._id) }}  aria-label="update">
-          <i class="material-icons">
-                save
+                                          <IconButton onClick={() => { updateSectionContent(section._id) }} aria-label="update">
+                                            <i class="material-icons">
+                                              save
           </i>
-        </IconButton>
-              </> 
-            }
-             </>
-                )
-              })}
+                                          </IconButton>
+                                        </>
+                                    }
+                                  </>
+                                )
+                              })}
 
 
 
-        {editMode && 
-         <>
-        <Button
-          outline
-          variant="extended"
-          size="small"
-          color="primary"
-          aria-label="Add"
-          className={classes.margin}
-          onClick={createSection}
-        >
-          <AddIcon className={classes.extendedIcon} />
-          New section
+                              {editMode &&
+                                <>
+                                  <Button
+                                    outline
+                                    variant="extended"
+                                    size="small"
+                                    color="primary"
+                                    aria-label="Add"
+                                    className={classes.margin}
+                                    onClick={createSection}
+                                  >
+                                    <AddIcon className={classes.extendedIcon} />
+                                    New section
         </Button>
-         </>
-              }
-              </div>
-              </div>
-              </>}
-
-                {!loaded && <>
-                  <div class="sk-folding-cube">
-                    <div class="sk-cube1 sk-cube"></div>
-                    <div class="sk-cube2 sk-cube"></div>
-                    <div class="sk-cube4 sk-cube"></div>
-                    <div class="sk-cube3 sk-cube"></div>
-                  </div>
-                </>}
+                                </>
+                              }
+                          </div>
+                          </div>
+                      </>}
+  
+                    {!loaded && <>
+                          <div class="sk-folding-cube">
+                            <div class="sk-cube1 sk-cube"></div>
+                            <div class="sk-cube2 sk-cube"></div>
+                            <div class="sk-cube4 sk-cube"></div>
+                            <div class="sk-cube3 sk-cube"></div>
+                          </div>
+                        </>}
+                      </div>
+                </div>
+    
+              </Col>
+            </Grid>
           </div>
-        </div>
-
-        </Col>
-      </Grid>
-      </div>
-        )
-      }}
+              )
+            }}
     </LangContext.Consumer>
-  )
-}
-export default Article;
+            )
+          }
+          export default Article;
