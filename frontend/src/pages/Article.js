@@ -672,7 +672,7 @@ const Article = ({ match }) => {
                               
                               })}
                             </List>
-                            <Sections classes={classes} articleId={match.params.id} authD={authD} sections={sections} />
+                            <Sections classes={classes} articleId={match.params.id} authD={authD} sections={sections} editMode={editMode} />
 
 
 
