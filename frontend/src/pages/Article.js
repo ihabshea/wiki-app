@@ -16,7 +16,8 @@ import CardContent from '@material-ui/core/CardContent';
 import CardActions from '@material-ui/core/CardActions';
 import Collapse from '@material-ui/core/Collapse';
 import Dialog from '@material-ui/core/Dialog';
-
+import AddSectionButton from './Article/sections/AddSectionButton';
+import ALanguages from './Article/ALanguages';
 import FilledInput from '@material-ui/core/FilledInput';
 import Slide from '@material-ui/core/Slide';
 import OutlinedInput from '@material-ui/core/OutlinedInput'
@@ -30,7 +31,6 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import IconButton from '@material-ui/core/IconButton';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import Fab from '@material-ui/core/Fab';
-import AddIcon from '@material-ui/icons/Add';
 import InputBase from '@material-ui/core/InputBase';
 import InputLabel from '@material-ui/core/InputLabel';
 import TextField from '@material-ui/core/TextField';
@@ -74,6 +74,7 @@ import {
   Col, Row, Form, Container, FormGroup, Label, FormText, ListGroup, ListGroupItem, Jumbotron
 } from 'reactstrap';
 import languageContext from '../language/languageContext';
+// import ALanguages from './Article/ALanguages';
 
 const Article = ({ match }) => {
   const classes = useStyles();
@@ -105,7 +106,6 @@ const Article = ({ match }) => {
 
 
   const [languages, setLanguages] = useState([{ shorthand: "en", name: "English" }]);
-  const [alanguages, setALanguages] = useState([{ shorthand: "en", name: "English" }]);
 
   let lpreferredLanguage = localStorage.getItem("language");
   const Transition = (props) => {
@@ -242,42 +242,7 @@ const Article = ({ match }) => {
       // throw  new Error("t");
     }
   }
-  const fetchALanguages = async ({ articleId }) => {
-    let raw;
-    const requestBody = {
-
-      query: `
-    query {
-      alanguages(aid: "${match.params.id}"){
-        shorthand
-        name
-      }
-    }`
-    };
-    await fetch('http://localhost:9000/graphql',
-
-      {
-        method: 'POST',
-        body: JSON.stringify(requestBody),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
-    )
-      .then(res => {
-        if (res.status !== 200 && res.status !== 201) {
-          throw new Error('failed');
-        }
-        return res.json();
-      }).then(resData => {
-        console.log(resData.data.alanguages);
-        if (resData.data) {
-          setALanguages(resData.data.alanguages);
-        }
-      }).catch(err => {
-        throw (err);
-      })
-  }
+  
 
 
   const fetchTitle = async () => {
@@ -337,7 +302,7 @@ const Article = ({ match }) => {
   }, [])
   useEffectAsync(async () => {
     await fetchLanguages();
-    await fetchALanguages(match.params.id);
+    // await fetchALanguages(match.params.id);
     await fetchTitle();
     //  await fetchSuggestedArticles();
     // await fetchSections();
@@ -404,7 +369,7 @@ const Article = ({ match }) => {
       })
     await fetchTitle();
 
-    await fetchALanguages(match.params.id);
+    // await fetchALanguages(match.params.id);
     setET(false);
     setLoaded(true);
   }
@@ -544,30 +509,7 @@ const Article = ({ match }) => {
 
                 </ExpansionPanel>
 
-                <ExpansionPanel defaultExpanded>
-                  <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
-                    {strings.languages}
-                  </ExpansionPanelSummary>
-                  <ExpansionPanelDetails className={classes.details}>
-                    {alanguages.map(language => {
-                      return (
-                        <ListItemText primary={language.name} style={{ "margin": "0px !important", "padding:": "0px  !important" }} onClick={async () => { setLang(language.shorthand); await lContext.changeLanguage(language.shorthand); }} />
-                      )
-                    })}
-                    {editMode &&
-                      <Button
-                        outline
-                        variant="extended"
-                        size="small"
-                        color="primary"
-                        aria-label="Add"
-                        className={classes.margin}
-                        onClick={() => setAddField(true)} style={{ marginTop: 5 }}
-                        outline color="secondary">Add a new language</Button>
-                    }
-                  </ExpansionPanelDetails>
-                </ExpansionPanel>
-
+                <ALanguages articleId={match.params.id} editMode={editMode} lContext={lContext} strings={strings} classes={classes} setLang={setLang} />
 
               </Grid>
               <Col xs="8">
@@ -677,33 +619,22 @@ const Article = ({ match }) => {
 
 
                               {editMode &&
-                                <>
-                                  <Button
-                                    outline
-                                    variant="extended"
-                                    size="small"
-                                    color="primary"
-                                    aria-label="Add"
-                                    className={classes.margin}
-                                    onClick={createSection}
-                                  >
-                                    <AddIcon className={classes.extendedIcon} />
-                                    New section
-        </Button>
-                                </>
+                                
+                              <AddSectionButton classes={classes} createSection={createSection} />
+                              
                               }
                           </div>
                           </div>
                       </>}
   
-                    {!loaded && <>
+                    {!loaded && 
                           <div class="sk-folding-cube">
                             <div class="sk-cube1 sk-cube"></div>
                             <div class="sk-cube2 sk-cube"></div>
                             <div class="sk-cube4 sk-cube"></div>
                             <div class="sk-cube3 sk-cube"></div>
                           </div>
-                        </>}
+                        }
                       </div>
                 </div>
     
