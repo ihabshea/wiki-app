@@ -200,13 +200,20 @@ const changeInput = (e) => {
             <MenuIcon />
           </IconButton>
           <Typography className={classes.title} variant="h6" color="inherit" noWrap>
-            Material-UI
+            WikiMVC
           </Typography>
-          <div className={classes.search}>
+          <div className={classes.search} 
+             style={{
+              paddingLeft: 10 
+            }}
+          > 
             <div className={classes.searchIcon}>
               <SearchIcon />
             </div>
             <InputBase
+              style={{
+                paddingLeft: 40
+              }}
               placeholder="Search…"
               classes={{
                 root: classes.inputRoot,
