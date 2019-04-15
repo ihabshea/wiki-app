@@ -3,6 +3,7 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
+import SectionContent from './sectionContent';
 // import DialogActions from '@material-ui/core/DialogActions';
 // import DialogContent from '@material-ui/core/DialogContent';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -12,7 +13,7 @@ import Input from '@material-ui/core/Input';
 import Button from '@material-ui/core/Button';
 import WigEditor from './wig-editor'
 import Divider from '@material-ui/core/Divider';
-
+import SectionTitle from './sectionTitle';
 import IconButton from '@material-ui/core/IconButton';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl'
@@ -21,18 +22,11 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import useEffectAsync from '../../../helpers/useEffectAsync';
 const Section = ({ classes, authD, fetchSections, section, editMode }) => {
 
-    const [sectionDeleteDialog, setSDD] = useState(false);
-    const [sectionedit, setSE] = useState(null);
-    const [sectionTitle, setST] = useState('');
-    const [sectionContent, setSC] = useState('');
-    const [title, setTitle] = useState({ text: null });
-    const [SCEdit, setSCE] = useState(false);
+
+
     const [currentSection, setCS] = useState(section);
-    const [cTitle, setCT] = useState(section.title);
     const [cSC, setCSC] = useState(null);
-    const [sectionCID, setSCID] = useState(null);
     const [loaded, setLoaded] = useState(true);
-    let lpreferredLanguage = localStorage.getItem("language");
 
     let sectionid = section._id;
     useEffectAsync(async () => {
@@ -73,333 +67,20 @@ const Section = ({ classes, authD, fetchSections, section, editMode }) => {
                 setLoaded(true);
             });
     }
-    const updateSectionContent = async () => {
-        setLoaded(false);
-        const requestBody = {
 
-            query: `
-    mutation {
-      updateSectionContent(sectionID: "${sectionid}", content: """${cSC}"""){
-        title
-      }
-    }`
-        };
-        await fetch('http://localhost:9000/graphql',
 
-            {
-                method: 'POST',
-                body: JSON.stringify(requestBody),
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + authD.token
-                }
-            }
-        )
-            .then(res => {
-                if (res.status !== 200 && res.status !== 201) {
-                    throw new Error('failed');
-                }
-                return res.json();
-            }).then(resData => {
-                console.log(resData.data.title);
-                if (resData.data.title) {
-                    setTitle(resData.data.title);
-                } else {
-                    setTitle({ text: null });
-                }
-            }).catch(err => {
-                throw (err);
-            })
-        // await fetchTitle();
-        // await fetchSections();
-
-        // await fetchFields();
-        // await fetchALanguages(articleId);
-        // setET(false);
-        await fetchSection();
-        setSCE(false);
-        setLoaded(true);
-    }
-
-    const deleteSection = async (id) => {
-        setLoaded(false);
-        const requestBody = {
-            query: `
-    mutation {
-      deleteSection(sectionID: "${id}"){
-        section{
-          _id
-        }
-      }
-    }`
-        };
-        await fetch('http://localhost:9000/graphql',
-
-            {
-                method: 'POST',
-                body: JSON.stringify(requestBody),
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + authD.token
-                }
-            }
-        )
-            .then(res => {
-                if (res.status !== 200 && res.status !== 201) {
-                    throw new Error('failed');
-                }
-                return res.json();
-            }).then(() => {
-
-            }).catch(err => {
-                throw (err);
-            })
-        // await fetchTitle();
-        await fetchSections();
-        // await fetchFields();
-        // await fetchALanguages(articleId);
-        // setET(false);
-        setLoaded(true);
-    };
-    const updateSectionTitle = async (id) => {
-        setLoaded(false);
-        const requestBody = {
-            query: `
-    mutation {
-      updateSectionTitle(sectionID: "${id}", title: "${sectionTitle}"){
-        title
-      }
-    }`
-        };
-        await fetch('http://localhost:9000/graphql',
-            {
-                method: 'POST',
-                body: JSON.stringify(requestBody),
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + authD.token
-                }
-            }
-        )
-            .then(res => {
-                if (res.status !== 200 && res.status !== 201) {
-                    throw new Error('failed');
-                }
-                return res.json();
-            }).then(resData => {
-                console.log(resData.data.title);
-                if (resData.data.title) {
-                    setTitle(resData.data.title);
-                } else {
-                    setTitle({ text: null });
-                }
-            }).catch(err => {
-                throw (err);
-            })
-
-        await fetchSection();
-
-        // setET(false);
-        setLoaded(true);
-    }
+    
+   
 
     return (
         <>
-            {loaded &&
+            {loaded?
                 <>
-                    <h4 style={{ marginBottom: 0 }}>
-                        {section.title ?
-                            <>
-                                {sectionid != sectionedit ?
-                                    <span onClick={() => setSE(sectionid)} style={{ cursor: "pointer" }}>
-                                        {section.title}
-                                    </span>
-                                    :
-                                    <>
-                                        <FormControl className={classes.margin}>
-                                            <InputLabel
-                                                htmlFor="custom-css-standard-input"
-                                                classes={{
-                                                    root: classes.cssLabel,
-                                                    focused: classes.cssFocused,
-                                                }}
-                                            >
-                                                Section  Title
-                                            </InputLabel>
-
-                                            <Input
-                                                id="custom-css-standard-input"
-                                                value={sectionTitle}
-                                                onChange={(e) => setST(e.target.value)}
-                                                classes={{
-                                                    underline: classes.cssUnderline,
-                                                }}
-                                            />
-                                            <IconButton onClick={() => { updateSectionTitle(section._id) }} aria-label="update">
-                                                <i class="material-icons">
-                                                    save
-                                          </i>
-                                            </IconButton>
-                                        </FormControl>
-                                    </>
-                                }
-
-
-                                {editMode &&
-                                    <>
-                                        <IconButton onClick={() => setSDD(!sectionDeleteDialog)} aria-label="Delete">
-                                            <i class="material-icons">
-                                                delete
-  </i>
-                                        </IconButton>
-                                        <Dialog
-                                            open={sectionDeleteDialog}
-                                            onClose={() => setSDD(!sectionDeleteDialog)}
-                                            aria-labelledby="alert-dialog-title"
-                                            aria-describedby="alert-dialog-description"
-                                        >
-                                            <DialogTitle id="alert-dialog-title">{"Delete section"}</DialogTitle>
-                                            <DialogContent>
-                                                <DialogContentText id="alert-dialog-description">
-                                                    Are you sure?
-  </DialogContentText>
-                                            </DialogContent>
-                                            <DialogActions>
-                                                <Button onClick={() => setSDD(!sectionDeleteDialog)} color="primary">
-                                                    No
-  </Button>
-                                                <Button onClick={() => deleteSection(section._id)} color="primary" autoFocus>
-                                                    Yes
-  </Button>
-                                            </DialogActions>
-                                        </Dialog>
-                                    </>
-                                }
-                            </> :
-
-                            <>
-                                {sectionid != sectionedit ?
-                                    <>
-                                        <span onClick={() => setSE(sectionid)} style={{ cursor: "pointer" }}>
-                                            Untitled Section
-            </span>
-                                        {editMode &&
-                                            <>
-                                                <IconButton onClick={() => setSDD(!sectionDeleteDialog)} aria-label="Delete">
-                                                    <i class="material-icons">
-                                                        delete
-  </i>
-                                                </IconButton>
-                                                <Dialog
-                                                    open={sectionDeleteDialog}
-                                                    onClose={() => setSDD(!sectionDeleteDialog)}
-                                                    aria-labelledby="alert-dialog-title"
-                                                    aria-describedby="alert-dialog-description"
-                                                >
-                                                    <DialogTitle id="alert-dialog-title">{"Delete section"}</DialogTitle>
-                                                    <DialogContent>
-                                                        <DialogContentText id="alert-dialog-description">
-                                                            Are you sure?
-  </DialogContentText>
-                                                    </DialogContent>
-                                                    <DialogActions>
-                                                        <Button onClick={() => setSDD(!sectionDeleteDialog)} color="primary">
-                                                            No
-  </Button>
-                                                        <Button onClick={() => deleteSection(section._id)} color="primary" autoFocus>
-                                                            Yes
-  </Button>
-                                                    </DialogActions>
-                                                </Dialog>
-                                            </>
-                                        }
-                                    </>
-                                    :
-                                    <>
-                                        <FormControl className={classes.margin}>
-                                            <InputLabel
-                                                htmlFor="custom-css-standard-input"
-                                                classes={{
-                                                    root: classes.cssLabel,
-                                                    focused: classes.cssFocused,
-                                                }}
-                                            >
-                                                Section  Title
-                                            </InputLabel>
-
-                                            <Input
-                                                id="custom-css-standard-input"
-                                                value={sectionTitle}
-                                                onChange={(e) => setST(e.target.value)}
-                                                classes={{
-                                                    underline: classes.cssUnderline,
-                                                }}
-                                            />
-                                            <IconButton onClick={() => { updateSectionTitle(section._id) }} aria-label="update">
-                                                <i class="material-icons">
-                                                    save
-                                          </i>
-                                            </IconButton>
-                                        </FormControl>
-                                    </>
-                                }
-
-                            </>
-
-                        }
-                    </h4>
-                    <Divider style={{ width: "100%", marginLeft: 0, marginBottom: 5 }} variant="middle" />
-                    {currentSection.content ?
-                        <>
-                            {!SCEdit &&
-                                <div style={{ cursor: "pointer" }} onClick={() => { setSCE(true); }} dangerouslySetInnerHTML={{ __html: currentSection.content }}>
-                                </div>
-                            }
-                            {SCEdit &&
-                                <>
-                                    <WigEditor sectionContent={cSC} setSC={setCSC} />
-                                    <IconButton onClick={updateSectionContent} aria-label="update">
-                                        <i class="material-icons">
-                                            save
-  </i>
-                                    </IconButton>
-                                </>
-                            }
-                        </> :
-                        sectionid != sectionCID ?
-                            <>
-
-
-                                <span onClick={() => setSCID(section._id)} style={{ cursor: "pointer" }}>
-                                    Write in this section.
-      </span>
-                            </>
-                            :
-                            <>
-                                <WigEditor sectionContent={sectionContent} setSC={setSC} />
-                                {/* <TextField
-                style={{width:"100%"}}
-                id="filled-multiline-flexible"
-                label="Section content"
-                multiline
-                rowsMax="4"
-                value={sectionContent}
-                onChange={(e) => setSC(e.target.value)}
-                className={classes.textField}
-                margin="normal"
-                helperText="hello"
-                variant="filled"
-      /> */}
-                                <IconButton onClick={() => { updateSectionContent(section._id) }} aria-label="update">
-                                    <i class="material-icons">
-                                        save
-  </i>
-                                </IconButton>
-                            </>
-                    }
+                <SectionTitle classes={classes} fetchSection={fetchSection} fetchSections={fetchSections} setLoaded={setLoaded} sectionid={sectionid} authD={authD} editMode={editMode} section={section} />
+                      <Divider style={{ width: "100%", marginLeft: 0, marginBottom: 5 }} variant="middle" />
+                <SectionContent section={section} cSC={cSC} setCSC={setCSC} classes={classes} fetchSection={fetchSection} fetchSections={fetchSections} setLoaded={setLoaded} currentSection={currentSection} />    
                 </>
-            }
-            {!loaded &&
+            :
                 <div class="sk-folding-cube">
                     <div class="sk-cube1 sk-cube"></div>
                     <div class="sk-cube2 sk-cube"></div>
