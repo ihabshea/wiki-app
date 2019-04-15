@@ -232,6 +232,23 @@ module.exports = {
    const rlanguage = await Language.findOne({shorthand: language}).exec();
    return rlanguage;
  },
+ Nlanguages: async({articleId}) => {
+  const article = await Article.findOne({_id: articleId}).exec();
+
+  return Language.find({_id: {$nin: article.languages}}).then(
+    (rlanguages) => {
+      return rlanguages.map((rlanguage) => {
+        return {...rlanguage._doc};
+      });
+  });
+},
+addLanguage: async({articleId, language}) => {
+  const clanguage = await Language.findOne({shorthand: language}).exec();
+  const article = await Article.findOne({_id: articleId}).exec();
+  article.languages.push(clanguage._id);
+  await article.save();
+  return clanguage;
+},
  languages: async() => {
    return Language.find().then(
      (rlanguages) => {

@@ -167,6 +167,7 @@ buildSchema(`
     updateSectionContent(sectionID: ID!, content: String!): section!
     updateField(fieldID: ID!, newvalue: String!): field!
     deleteSection(sectionID: ID!): modification!
+    addLanguage(articleId: ID!, language:String!): supportedLanguages!
     deleteField(fieldID: ID!, reason: String!, language: String!): modification!
     createLanguage(name: String, shorthand: String): supportedLanguages!
   }
@@ -182,7 +183,8 @@ buildSchema(`
     description(articleID: ID!, language: String!): description
     findArticlesByLanguage(language: String!): [article!]
     language(shorthand: String!): supportedLanguages!
-    languages: [supportedLanguages!]!
+    languages: [supportedLanguages!]
+    Nlanguages(articleId: ID!): [supportedLanguages!]
     alanguages(aid: ID!):  [supportedLanguages!]
     modifications(articleID: ID!,language: String!): [modification!]
     login(username: String!, password: String!): AuthData!

@@ -78,7 +78,7 @@ const Section = ({ classes, authD, fetchSections, section, editMode }) => {
                 <>
                 <SectionTitle classes={classes} fetchSection={fetchSection} fetchSections={fetchSections} setLoaded={setLoaded} sectionid={sectionid} authD={authD} editMode={editMode} section={section} />
                       <Divider style={{ width: "100%", marginLeft: 0, marginBottom: 5 }} variant="middle" />
-                <SectionContent section={section} cSC={cSC} setCSC={setCSC} classes={classes} fetchSection={fetchSection} fetchSections={fetchSections} setLoaded={setLoaded} currentSection={currentSection} />    
+                <SectionContent sectionid={sectionid} authD={authD} section={section} cSC={cSC} setCSC={setCSC} classes={classes} fetchSection={fetchSection} fetchSections={fetchSections} setLoaded={setLoaded} currentSection={currentSection} />    
                 </>
             :
                 <div class="sk-folding-cube">

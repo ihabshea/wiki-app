@@ -106,6 +106,7 @@ const Article = ({ match }) => {
 
 
   const [languages, setLanguages] = useState([{ shorthand: "en", name: "English" }]);
+  const [Nlanguages, setNLanguages] = useState([{ shorthand: "en", name: "English" }]);
 
   let lpreferredLanguage = localStorage.getItem("language");
   const Transition = (props) => {
@@ -203,7 +204,44 @@ const Article = ({ match }) => {
   };
 
   //
+  const fetchNLanguages = async () => {
+    let raw;
+    const requestBody = {
 
+      query: `
+    query {
+      Nlanguages(articleId:"${match.params.id}"){
+        shorthand
+        name
+      }
+    }`
+    };
+    try {
+      await fetch('http://localhost:9000/graphql',
+
+        {
+          method: 'POST',
+          body: JSON.stringify(requestBody),
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+        .then(res => {
+          if (res.status !== 200 && res.status !== 201) {
+            throw new Error('failed');
+          }
+          return res.json();
+        }).then(resData => {
+          console.log(resData.data.languages);
+          setNLanguages(resData.data.Nlanguages);
+        }).catch(err => {
+          throw (err);
+        })
+    } catch (e) {
+      // throw  new Error("t");
+    }
+  }
   const fetchLanguages = async () => {
     let raw;
     const requestBody = {
@@ -302,6 +340,7 @@ const Article = ({ match }) => {
   }, [])
   useEffectAsync(async () => {
     await fetchLanguages();
+    await fetchNLanguages(match.params.id);
     // await fetchALanguages(match.params.id);
     await fetchTitle();
     //  await fetchSuggestedArticles();
@@ -509,7 +548,7 @@ const Article = ({ match }) => {
 
                 </ExpansionPanel>
 
-                <ALanguages articleId={match.params.id} editMode={editMode} lContext={lContext} strings={strings} classes={classes} setLang={setLang} />
+                <ALanguages lContext={lContext} languages={Nlanguages} articleId={match.params.id} editMode={editMode} strings={strings} classes={classes} setLang={setLang} />
 
               </Grid>
               <Col xs="8">

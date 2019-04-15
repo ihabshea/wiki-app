@@ -6,11 +6,11 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ListItemText from '@material-ui/core/ListItemText';
 import Button from '@material-ui/core/Button';
 import useEffectAsync from '../../helpers/useEffectAsync';
-
-const ALanguages = ({ articleId, lContext, editMode, strings, classes, setLang }) => {
+import AddNewLanguage from './AddNewLanguage';
+const ALanguages = ({ articleId, lContext, languages, editMode, strings, classes, setLang }) => {
     const [loaded, setLoaded] = useState(false);
   const [alanguages, setALanguages] = useState([{ shorthand: "en", name: "English" }]);
-
+    const [newLanguageModal, setNLM]= useState(false);
     useEffectAsync(async () => {
         await fetchALanguages();
         setLoaded(true);
@@ -67,7 +67,9 @@ const ALanguages = ({ articleId, lContext, editMode, strings, classes, setLang }
                             )
                         })}
                         {editMode &&
+                        <>
                             <Button
+                                onClick={() => {setNLM(true)}}
                                 outline
                                 variant="extended"
                                 size="small"
@@ -76,6 +78,8 @@ const ALanguages = ({ articleId, lContext, editMode, strings, classes, setLang }
                                 className={classes.margin}
                                 style={{ marginTop: 5 }}
                                 outline color="secondary">Add a new language</Button>
+                            <AddNewLanguage lContext={lContext} languages={languages} articleId={articleId} newLanguageModal={newLanguageModal} setNLM={setNLM} />
+                        </>
                         }
                     </ExpansionPanelDetails>
                 </ExpansionPanel>

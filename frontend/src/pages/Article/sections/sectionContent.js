@@ -65,6 +65,7 @@ const SectionContent = ({cSC, setCSC, sectionid, authD, section, classes, fetchS
         setSCE(false);
         setLoaded(true);
     }
+    console.log(sectionid, sectionCID);
     return (
         <>
         {
@@ -85,11 +86,12 @@ const SectionContent = ({cSC, setCSC, sectionid, authD, section, classes, fetchS
                         </>
                     }
                 </> :
-                sectionid != sectionCID ?
+                
+                !SCEdit?
                     <>
 
 
-                        <span onClick={() => setSCID(section._id)} style={{ cursor: "pointer" }}>
+                        <span onClick={() => setSCE(true)} style={{ cursor: "pointer" }}>
                             Write in this section.
 </span>
                     </>
